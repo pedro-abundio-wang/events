@@ -21,16 +21,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Unit Test'
-                echo 'Integration Test: events-db'
-                sh './gradlew :events-db:events-postgres:composeBuild'
-                sh './gradlew :events-db:events-postgres:composeUp'
-                sh './gradlew :events-db:events-postgres:composeDown'
-                echo 'Integration Test: events-cdc-service'
-                sh './gradlew :events-cdc:events-cdc-service:composeBuild'
-                sh './gradlew :events-cdc:events-cdc-service:composeUp'
-                sh './gradlew :events-messaging:events-messaging-kafka:integrationTest'
-                sh './gradlew :events-messaging:events-messaging-activemq:integrationTest'
-                sh './gradlew :events-cdc:events-cdc-service:composeDown'
+                echo 'Integration Test'
                 echo 'Component Test'
                 echo 'E2E Test'
             }
