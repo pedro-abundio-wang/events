@@ -1,8 +1,8 @@
 pipeline {
     agent any
 
-    environment {
-        K8S_MASTER = '10.110.38.32'
+    parameters {
+        string(name: 'KUBERNETES_MASTER', defaultValue: '', description: 'Kubernetes master node ip address')
     }
 
     stages {
@@ -39,7 +39,7 @@ pipeline {
             steps {
                 echo 'Deploying RabbitMQ'
                 sh '''
-                    ssh root@${K8S_MASTER} << 'EOF'
+                    ssh root@${params.KUBERNETES_MASTER} << 'EOF'
                     helm upgrade --install events-rabbitmq bitnami/rabbitmq --namespace events-cdc --set extraPlugins=rabbitmq_consistent_hash_exchange
                     exit
                 '''
@@ -47,28 +47,28 @@ pipeline {
                 echo 'Deploying ActiveMQ'
                 echo 'Deploying Redis'
                 sh '''
-                    ssh root@${K8S_MASTER} << 'EOF'
+                    ssh root@${params.KUBERNETES_MASTER} << 'EOF'
                     helm upgrade --install events-redis bitnami/redis --namespace events-cdc
                     exit
                 '''
                 echo 'Deploying Kafka/Zookeeper'
                 sh '''
-                    ssh root@${K8S_MASTER} << 'EOF'
+                    ssh root@${params.KUBERNETES_MASTER} << 'EOF'
                     helm upgrade --install events-kafka bitnami/kafka --namespace events-cdc
                     exit
                 '''
                 echo 'Deploying Events Postgres'
                 sh '''
-                    scp -r ./events-db/events-postgres/deployment/kubernetes root@${K8S_MASTER}:/opt/
-                    ssh root@${K8S_MASTER} << 'EOF'
+                    scp -r ./events-db/events-postgres/deployment/kubernetes root@${params.KUBERNETES_MASTER}:/opt/
+                    ssh root@${params.KUBERNETES_MASTER} << 'EOF'
                     mv -f /opt/kubernetes /opt/events-db-kubernetes
                     kubectl apply -f /opt/events-db-kubernetes
                     exit
                 '''
                 echo 'Deploying Events Cdc Service'
                 sh '''
-                    scp -r ./events-cdc/events-cdc-service/deployment/kubernetes root@${K8S_MASTER}:/opt/
-                    ssh root@${K8S_MASTER} << 'EOF'
+                    scp -r ./events-cdc/events-cdc-service/deployment/kubernetes root@${params.KUBERNETES_MASTER}:/opt/
+                    ssh root@${params.KUBERNETES_MASTER} << 'EOF'
                     mv -f /opt/kubernetes /opt/events-cdc-kubernetes
                     kubectl apply -f /opt/events-cdc-kubernetes
                     exit
