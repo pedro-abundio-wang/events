@@ -1,0 +1,31 @@
+@startuml
+class com.events.cdc.pipeline.CdcPipeline {
+- CdcPublisher<TLM> cdcPublisher
++ void start()
++ void stop()
+}
+class com.events.cdc.pipeline.CdcPipelineProperties {
+- String type
+- String reader
+- String eventsDatabaseSchema
+- String sourceTableName
++ void validate()
++ String getReader()
++ void setReader(String)
++ String getType()
++ void setType(String)
++ String getEventsDatabaseSchema()
++ void setEventsDatabaseSchema(String)
++ String toString()
++ String getSourceTableName()
++ void setSourceTableName(String)
+}
+class com.events.cdc.pipeline.CdcPipelineFactory {
+- String type
+- CdcReaderProvider cdcReaderProvider
+- CdcPublisher<TLM> cdcPublisher
+- TransactionLogEntryConverterFactory<TLM> transactionLogEntryConverterFactory
++ boolean supports(String)
++ CdcPipeline<TLM> create(CdcPipelineProperties)
+}
+@enduml

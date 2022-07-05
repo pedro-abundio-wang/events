@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: events-cdc
+  name: events-postgres
+  labels:
+    app: events-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: events-postgres
+  serviceName: events-postgres
+  template:
+    metadata:
+      labels:
+        app: events-postgres
+    spec:
+      containers:
+        - name: events-postgres
+          image: 10.110.38.38:18080/library/events-postgres:v0.0.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
+            - name: USE_DB_ID
+              value: "false"
+            - name: USE_JSON_PAYLOAD_AND_HEADERS
+              value: "false"
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          livenessProbe:
+            exec:
+              command: [ "psql", "-Upostgres", "-dpostgres", "-c", "SELECT 1" ]
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          readinessProbe:
+            exec:
+              # Check we can execute queries over TCP (skip-networking is off).
+              command: [ "psql", "-Upostgres", "-dpostgres", "-c", "SELECT 1" ]
+            initialDelaySeconds: 60
+            periodSeconds: 20
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 8Gi

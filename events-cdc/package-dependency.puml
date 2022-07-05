@@ -1,0 +1,21 @@
+@startuml
+
+package "events-cdc-service" {
+}
+
+package "events-cdc-reader" {
+}
+
+package "events-cdc-pipeline" {
+}
+
+package "events-cdc-publisher" {
+}
+
+"events-cdc-service" +-- "events-cdc-pipeline"
+"events-cdc-pipeline" +-- "events-cdc-reader"
+"events-cdc-pipeline" +-- "events-cdc-publisher"
+
+"events-cdc-publisher" +-- "events-cdc-reader"
+
+@enduml

@@ -1,0 +1,16 @@
+@startuml
+
+class ActiveMQMessageProducer
+class ActiveMQMessageConsumer
+class ActiveMQProperties
+
+class RedisMessageProducer
+class RedisMessageConsumer
+
+class RabbitMQMessageProducer
+class RabbitMQMessageConsumer
+
+class KafkaMessageProducer
+class KafkaMessageConsumer
+
+@enduml

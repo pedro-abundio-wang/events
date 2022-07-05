@@ -1,0 +1,178 @@
+@startuml
+interface com.events.core.domain.IdSupplier {
+}
+class com.events.core.domain.subscriber.DomainEventEnvelopeImpl {
+- Message message
+- String aggregateType
+- String aggregateId
+- String eventId
+- T event
++ String getAggregateId()
++ Message getMessage()
++ T getEvent()
++ String getAggregateType()
++ String getEventId()
++ String toString()
+}
+class com.events.core.domain.AbstractDomainEventTest {
+- DomainEventPublisher domainEventPublisher
+- AbstractDomainEventTestConfig config
+- EventTestEventConsumer tramEventTestEventConsumer
++ void shouldReceiveEvent()
+}
+class com.events.core.domain.testing.support.DomainEventHandlerUnitTestSupport {
+- MessageHandler handler
+- String aggregateType
+- Object aggregateId
+- DomainEventDispatcher dispatcher
+- SimpleIdGenerator idGenerator
++ {static} DomainEventHandlerUnitTestSupport given()
++ DomainEventHandlerUnitTestSupport eventHandlers(DomainEventHandlers)
++ DomainEventHandlerUnitTestSupport when()
++ DomainEventHandlerUnitTestSupport then()
++ DomainEventHandlerUnitTestSupport aggregate(String,Object)
++ DomainEventHandlerUnitTestSupport publishes(DomainEvent)
++ DomainEventHandlerUnitTestSupport verify(Runnable)
++ DomainEventHandlerUnitTestSupport expectEventHandlerInvoked(EH,BiConsumer<EH,DomainEventEnvelope<EV>>,Consumer<DomainEventEnvelope<EV>>)
+}
+class com.events.core.domain.spring.config.DomainEventPublisherConfiguration {
++ DomainEventNameMapping domainEventNameMapping()
++ DomainEventPublisher domainEventPublisher(MessagePublisher,DomainEventNameMapping)
+}
+class com.events.core.domain.aggregate.DomainModelWithDomainEvents {
++ A model
++ List<E> events
+}
+class com.events.core.domain.subscriber.DomainEventDispatcherFactory {
+# MessageSubscriber messageSubscriber
+# DomainEventNameMapping domainEventNameMapping
++ DomainEventDispatcher make(String,DomainEventHandlers)
+}
+class com.events.core.domain.subscriber.DomainEventHandlers {
+- List<DomainEventHandler> handlers
++ Set<String> getAggregateTypesAndEvents()
++ List<DomainEventHandler> getHandlers()
++ Optional<DomainEventHandler> findTargetMethod(Message)
+}
+class com.events.core.domain.EventTestEventConsumer {
+- BlockingQueue<AccountDebited> queue
+- String aggregateType
++ DomainEventHandlers domainEventHandlers()
++ void handleAccountDebited(DomainEventEnvelope<AccountDebited>)
++ BlockingQueue<AccountDebited> getQueue()
+}
+abstract class com.events.core.domain.aggregate.AbstractAggregateDomainEventPublisher {
+- Function<A,Object> idSupplier
+- DomainEventPublisher eventPublisher
+- Class<A> aggregateType
++ Class<A> getAggregateType()
++ void publish(A,List<E>)
+}
+interface com.events.core.domain.publisher.DomainEventPublisher {
+~ void publish(Class<?>,Object,List<DomainEvent>)
+~ void publish(String,Object,List<DomainEvent>)
+~ void publish(String,Object,Map<String,String>,List<DomainEvent>)
+}
+class com.events.core.domain.publisher.DomainEventPublisherTestConfiguration {
+}
+class com.events.core.domain.AccountDebited {
+- long amount
++ long getAmount()
++ void setAmount(long)
+}
+class com.events.core.domain.AbstractDomainEventTestConfig {
+- long uniqueId
+- String aggregateType
+- String aggregateId
++ Long get()
++ String getAggregateType()
++ String getAggregateId()
+}
+class com.events.core.domain.common.DomainEventMessageHeaders {
++ {static} String EVENT_TYPE
++ {static} String AGGREGATE_TYPE
++ {static} String AGGREGATE_ID
+}
+class com.events.core.domain.spring.config.DomainEventSubscriberConfiguration {
++ DomainEventDispatcherFactory domainEventDispatcherFactory(MessageSubscriber,DomainEventNameMapping)
+}
+class com.events.core.domain.subscriber.DomainEventHandler {
+- String aggregateType
+- Class<DomainEvent> eventClass
+- Consumer<DomainEventEnvelope<DomainEvent>> handler
++ boolean handles(Message)
++ void invoke(DomainEventEnvelope<DomainEvent>)
++ Class<DomainEvent> getEventClass()
++ String getAggregateType()
+}
+class com.events.core.domain.common.DefaultDomainEventNameMapping {
++ String eventToExternalEventType(String,DomainEvent)
++ String externalEventTypeToEventClassName(String,String)
+}
+class com.events.core.domain.publisher.DomainEventPublisherImpl {
+- MessagePublisher messagePublisher
+- DomainEventNameMapping domainEventNameMapping
++ void publish(String,Object,List<DomainEvent>)
++ void publish(String,Object,Map<String,String>,List<DomainEvent>)
++ Message makeMessageForDomainEvent(String,Object,Map<String,String>,DomainEvent,String)
+}
+class com.events.core.domain.publisher.DomainEventPublisherTest {
+- DomainEventPublisher domainEventPublisher
++ void shouldPublishDomainEvent()
+}
+class com.events.core.domain.Account {
+}
+class com.events.core.domain.AbstractDomainEventTestConfiguration {
++ IdSupplier abstractEventTestConfig()
++ DomainEventDispatcher domainEventDispatcher(DomainEventDispatcherFactory,IdSupplier,EventTestEventConsumer)
++ EventTestEventConsumer tramEventTestTarget(AggregateSupplier)
+}
+interface com.events.core.domain.subscriber.DomainEventEnvelope {
+~ String getAggregateId()
+~ Message getMessage()
+~ String getAggregateType()
+~ String getEventId()
+~ T getEvent()
+}
+class com.events.core.domain.jdbc.kafka.JdbcKafkaDomainEventTest {
+}
+class com.events.core.domain.subscriber.DomainEventHandlersBuilder {
+- String aggregateType
+- List<DomainEventHandler> handlers
++ {static} DomainEventHandlersBuilder forAggregateType(String)
++ DomainEventHandlersBuilder onEvent(Class<E>,Consumer<DomainEventEnvelope<E>>)
++ DomainEventHandlersBuilder andForAggregateType(String)
++ DomainEventHandlers build()
+}
+class com.events.core.domain.jdbc.kafka.JdbcKafkaDomainEventTestConfiguration {
+}
+interface com.events.core.domain.common.DomainEvent {
+}
+interface com.events.core.domain.AggregateSupplier {
+~ String getAggregateType()
+~ String getAggregateId()
+}
+interface com.events.core.domain.common.DomainEventNameMapping {
+~ String eventToExternalEventType(String,DomainEvent)
+~ String externalEventTypeToEventClassName(String,String)
+}
+class com.events.core.domain.subscriber.DomainEventDispatcher {
+- Logger logger
+- String eventDispatcherId
+- DomainEventHandlers domainEventHandlers
+- MessageSubscriber messageSubscriber
+- DomainEventNameMapping domainEventNameMapping
++ void initialize()
++ void messageHandler(Message)
+}
+
+
+java.util.function.Supplier <|-- com.events.core.domain.IdSupplier
+com.events.core.domain.subscriber.DomainEventEnvelope <|.. com.events.core.domain.subscriber.DomainEventEnvelopeImpl
+com.events.core.domain.common.DomainEvent <|.. com.events.core.domain.AccountDebited
+com.events.core.domain.IdSupplier <|.. com.events.core.domain.AbstractDomainEventTestConfig
+com.events.core.domain.AggregateSupplier <|.. com.events.core.domain.AbstractDomainEventTestConfig
+com.events.core.domain.common.DomainEventNameMapping <|.. com.events.core.domain.common.DefaultDomainEventNameMapping
+com.events.core.domain.publisher.DomainEventPublisher <|.. com.events.core.domain.publisher.DomainEventPublisherImpl
+com.events.core.domain.AbstractDomainEventTest <|-- com.events.core.domain.jdbc.kafka.JdbcKafkaDomainEventTest
+@enduml

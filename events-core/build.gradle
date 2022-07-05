@@ -1,0 +1,37 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    }
+}
+
+subprojects {
+
+    group 'com.events.core'
+    version 'v0.0.1'
+
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+    apply plugin: IntegrationTestsPlugin
+    apply plugin: ComponentTestsPlugin
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    repositories {
+        mavenCentral()
+    }
+
+    publishing {
+        publications {
+            eventsCore(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+}
+
+

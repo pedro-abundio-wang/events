@@ -1,0 +1,10 @@
+logging:
+  level:
+    com.events: TRACE
+
+events:
+  cdc:
+    activemq:
+      url: tcp://${OS_ENV_ACTIVEMQ_HOST:localhost}:61616
+      user: admin
+      password: admin

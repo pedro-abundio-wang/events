@@ -1,0 +1,31 @@
+plugins {
+    id 'org.springframework.boot' apply false
+    id 'io.spring.dependency-management'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+    }
+}
+
+dependencies {
+
+    api project(':events-cdc:events-cdc-reader')
+    api project(':events-cdc:events-cdc-publisher')
+
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.apache.commons:commons-lang3'
+    implementation 'junit:junit'
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    implementation 'com.zaxxer:HikariCP'
+
+    implementation "org.redisson:redisson:${redissonVersion}"
+    implementation "org.apache.curator:curator-recipes:${curatorVersion}"
+
+    testImplementation 'junit:junit'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}

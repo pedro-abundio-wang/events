@@ -1,0 +1,36 @@
+management:
+  endpoints:
+    web.exposure:
+      include: health, metrics, loggers, threaddump, heapdump
+      exclude:
+
+logging:
+  level:
+    com.events.cdc: INFO
+
+spring.profiles.active: kafka, zookeeper
+
+events:
+  cdc:
+    kafka:
+      enable.batch.processing: false
+      batch.processing.max.batch.size: 1000000
+      bootstrap:
+        servers: ${OS_ENV_KAFKA_HOST:localhost}:9092
+    zookeeper:
+      connection:
+        string: ${OS_ENV_ZK_HOST:localhost}:2181
+    pipeline:
+      events:
+        type: transactional-messaging
+        reader: postgres
+        eventsDatabaseSchema: events
+    reader:
+      postgres:
+        type: postgres-wal
+        dataSourceUrl: jdbc:postgresql://${OS_ENV_PG_HOST:localhost}:5432/postgres
+        dataSourceUserName: postgres
+        dataSourcePassword: postgres
+        dataSourceDriverClassName: org.postgresql.Driver
+        leadershipLockPath: /events/cdc/leader/postgres
+        outboxId: 1

@@ -1,0 +1,32 @@
+plugins {
+    id 'org.springframework.boot' apply false
+    id 'io.spring.dependency-management'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+    }
+}
+
+dependencies {
+
+    api project(':events-cdc:events-cdc-reader')
+
+    api project(':events-messaging:events-messaging-kafka')
+    api project(':events-messaging:events-messaging-redis')
+    api project(':events-messaging:events-messaging-rabbitmq')
+    api project(':events-messaging:events-messaging-activemq')
+    api project(':events-messaging:events-messaging-leadership')
+    api project(':events-messaging:events-messaging-partition')
+
+    implementation 'org.apache.commons:commons-lang3'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'junit:junit'
+
+    testImplementation 'junit:junit'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+}

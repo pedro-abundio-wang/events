@@ -1,0 +1,9 @@
+logging:
+  level:
+    com.events: DEBUG
+
+events:
+  cdc:
+    kafka:
+      bootstrap:
+        servers: ${OS_ENV_KAFKA_HOST:localhost}:9092

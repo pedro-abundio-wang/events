@@ -1,0 +1,26 @@
+logging:
+  level:
+    com.events: DEBUG
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${OS_ENV_PG_HOST:localhost}:5432/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+events:
+  cdc:
+    kafka:
+      bootstrap:
+        servers: ${OS_ENV_KAFKA_HOST:localhost}:9092
+    zookeeper:
+      connection:
+        string: ${OS_ENV_ZK_HOST:localhost}:2181
+    reader:
+      name: PostgresWalReader
+      outboxId: 1
+
+
+
+

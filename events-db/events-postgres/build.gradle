@@ -1,0 +1,18 @@
+// Import task types
+import com.bmuschko.gradle.docker.tasks.image.*
+
+// Use task types
+task dockerBuildImage(type: DockerBuildImage) {
+    inputDir = file('deployment/docker/')
+    images.add("${harborHost}:${harborPort}/${harborProject}/${project.name}:${project.version}")
+}
+
+task dockerPushImage(type: DockerPushImage) {
+    images.add("${harborHost}:${harborPort}/${harborProject}/${project.name}:${project.version}")
+}
+
+dockerCompose {
+    environment.put 'USE_DB_ID', 'false'
+    environment.put 'USE_JSON_PAYLOAD_AND_HEADERS', 'false'
+    useComposeFiles = ["deployment/docker-compose/docker-compose.yml"]
+}
