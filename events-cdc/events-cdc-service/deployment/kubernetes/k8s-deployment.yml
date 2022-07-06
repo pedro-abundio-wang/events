@@ -1,7 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: events-cdc
   name: events-cdc-service
   labels:
     app: events-cdc-service
