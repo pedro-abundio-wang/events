@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: events-postgres
-          image: 10.110.38.38:18080/library/events-postgres:v0.0.1
+          image: events-postgres
           imagePullPolicy: Always
           ports:
             - containerPort: 5432

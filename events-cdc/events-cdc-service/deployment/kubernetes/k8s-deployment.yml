@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: events-cdc-service
-          image: 10.110.38.38:18080/library/events-cdc-service:v0.0.1
+          image: events-cdc-service
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
