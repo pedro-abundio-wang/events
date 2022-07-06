@@ -48,11 +48,11 @@ pipeline {
                     // deploying events-postgres
                     sshCommand remote: kubernetes_master, command: "mkdir -p /opt/events-postgres"
                     sshPut remote: kubernetes_master, from: './events-db/events-postgres/deployment/kubernetes', filterRegex: /\.yml$/, into: '/opt/events-postgres'
-                    sshCommand remote: kubernetes_master, command: "kubectl apply -f /opt/events-postgres/kubernetes"
+                    sshCommand remote: kubernetes_master, command: "kubectl apply -f /opt/events-postgres/kubernetes -n ${params.KUBERNETES_NAMESPACE}"
                     // deploying events-cdc-service
                     sshCommand remote: kubernetes_master, command: "mkdir -p /opt/events-cdc"
                     sshPut remote: kubernetes_master, from: './events-cdc/events-cdc-service/deployment/kubernetes', filterRegex: /\.yml$/, into: '/opt/events-cdc'
-                    sshCommand remote: kubernetes_master, command: "kubectl apply -f /opt/events-cdc/kubernetes"
+                    sshCommand remote: kubernetes_master, command: "kubectl apply -f /opt/events-cdc/kubernetes -n ${params.KUBERNETES_NAMESPACE}"
                 }
             }
         }

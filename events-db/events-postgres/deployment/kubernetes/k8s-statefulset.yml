@@ -1,7 +1,6 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  namespace: events-cdc
   name: events-postgres
   labels:
     app: events-postgres
