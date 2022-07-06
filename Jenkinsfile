@@ -3,6 +3,7 @@ pipeline {
 
     parameters {
         string(name: 'KUBERNETES_MASTER', defaultValue: '', description: 'Kubernetes master node ip address')
+        string(name: 'KUBERNETES_NAMESPACE', defaultValue: '', description: 'Deploy application to specific namespace')
     }
 
     stages {
@@ -28,42 +29,31 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                echo 'Deploying RabbitMQ'
-                sh '''
-                    ssh root@${params.KUBERNETES_MASTER} << 'EOF'
-                    helm upgrade --install events-rabbitmq bitnami/rabbitmq --namespace events-cdc --set extraPlugins=rabbitmq_consistent_hash_exchange
-                    exit
-                '''
-                sh ''
-                echo 'Deploying ActiveMQ'
-                echo 'Deploying Redis'
-                sh '''
-                    ssh root@${params.KUBERNETES_MASTER} << 'EOF'
-                    helm upgrade --install events-redis bitnami/redis --namespace events-cdc
-                    exit
-                '''
-                echo 'Deploying Kafka/Zookeeper'
-                sh '''
-                    ssh root@${params.KUBERNETES_MASTER} << 'EOF'
-                    helm upgrade --install events-kafka bitnami/kafka --namespace events-cdc
-                    exit
-                '''
-                echo 'Deploying Events Postgres'
-                sh '''
-                    scp -r ./events-db/events-postgres/deployment/kubernetes root@${params.KUBERNETES_MASTER}:/opt/
-                    ssh root@${params.KUBERNETES_MASTER} << 'EOF'
-                    mv -f /opt/kubernetes /opt/events-db-kubernetes
-                    kubectl apply -f /opt/events-db-kubernetes
-                    exit
-                '''
-                echo 'Deploying Events Cdc Service'
-                sh '''
-                    scp -r ./events-cdc/events-cdc-service/deployment/kubernetes root@${params.KUBERNETES_MASTER}:/opt/
-                    ssh root@${params.KUBERNETES_MASTER} << 'EOF'
-                    mv -f /opt/kubernetes /opt/events-cdc-kubernetes
-                    kubectl apply -f /opt/events-cdc-kubernetes
-                    exit
-                '''
+                script {
+                    // remote kubernetes master server
+                    def kubernetes_master = [:]
+                    kubernetes_master.name = 'kubernetes_master_node'
+                    kubernetes_master.host = params.KUBERNETES_MASTER
+                    kubernetes_master.user = 'root'
+                    kubernetes_master.password = 'root'
+                    kubernetes_master.allowAnyHosts = true
+                    // create kubernetes namespace if it does not exist
+                    sshCommand remote: kubernetes_master, command: "kubectl create namespace ${params.KUBERNETES_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
+                    // deploying rabbitmq
+                    sshCommand remote: kubernetes_master, command: "helm upgrade --install events-rabbitmq bitnami/rabbitmq --namespace ${params.KUBERNETES_NAMESPACE} --set extraPlugins=rabbitmq_consistent_hash_exchange"
+                    // deploying redis
+                    sshCommand remote: kubernetes_master, command: "helm upgrade --install events-redis bitnami/redis --namespace ${params.KUBERNETES_NAMESPACE}"
+                    // deploying kafka
+                    sshCommand remote: kubernetes_master, command: "helm upgrade --install events-kafka bitnami/kafka --namespace ${params.KUBERNETES_NAMESPACE}"
+                    // deploying events-postgres
+                    sshCommand remote: kubernetes_master, command: "mkdir -p /opt/events-postgres"
+                    sshPut remote: kubernetes_master, from: './events-db/events-postgres/deployment/kubernetes', filterRegex: /\.yml$/, into: '/opt/events-postgres'
+                    sshCommand remote: kubernetes_master, command: "kubectl apply -f /opt/events-postgres/kubernetes"
+                    // deploying events-cdc-service
+                    sshCommand remote: kubernetes_master, command: "mkdir -p /opt/events-cdc"
+                    sshPut remote: kubernetes_master, from: './events-cdc/events-cdc-service/deployment/kubernetes', filterRegex: /\.yml$/, into: '/opt/events-cdc'
+                    sshCommand remote: kubernetes_master, command: "kubectl apply -f /opt/events-cdc/kubernetes"
+                }
             }
         }
     }
