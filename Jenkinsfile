@@ -4,6 +4,8 @@ pipeline {
     parameters {
         string(name: 'KUBERNETES_MASTER', defaultValue: '', description: 'Kubernetes master node ip address')
         string(name: 'KUBERNETES_NAMESPACE', defaultValue: '', description: 'Deploy application to specific namespace')
+        string(name: 'BUILD_VERSION', defaultValue: 'v0.0.1', description: 'Build version')
+        string(name: 'DOCKER_IMAGE_REPOSITORY', defaultValue: '10.110.38.26:18080/library', description: 'Docker image repository')
     }
 
     stages {
@@ -47,12 +49,12 @@ pipeline {
                     sshCommand remote: kubernetes_master, command: "helm upgrade --install events-kafka bitnami/kafka --namespace ${params.KUBERNETES_NAMESPACE}"
                     // deploying events-postgres
                     sshCommand remote: kubernetes_master, command: "mkdir -p /opt/events-postgres"
-                    sshPut remote: kubernetes_master, from: './events-db/events-postgres/deployment/kubernetes', filterRegex: /\.yml$/, into: '/opt/events-postgres'
-                    sshCommand remote: kubernetes_master, command: "kubectl apply -f /opt/events-postgres/kubernetes -n ${params.KUBERNETES_NAMESPACE}"
+                    sshPut remote: kubernetes_master, from: './events-db/events-postgres/deployment/helm', into: '/opt/events-postgres'
+                    sshCommand remote: kubernetes_master, command: "helm install events-postgres /opt/events-postgres/helm --set image.tag=${params.BUILD_VERSION} --set image.repository=${params.DOCKER_IMAGE_REPOSITORY}/events-postgres --namespace ${params.KUBERNETES_NAMESPACE}"
                     // deploying events-cdc-service
-                    sshCommand remote: kubernetes_master, command: "mkdir -p /opt/events-cdc"
-                    sshPut remote: kubernetes_master, from: './events-cdc/events-cdc-service/deployment/kubernetes', filterRegex: /\.yml$/, into: '/opt/events-cdc'
-                    sshCommand remote: kubernetes_master, command: "kubectl apply -f /opt/events-cdc/kubernetes -n ${params.KUBERNETES_NAMESPACE}"
+                    sshCommand remote: kubernetes_master, command: "mkdir -p /opt/events-cdc-service"
+                    sshPut remote: kubernetes_master, from: './events-cdc/events-cdc-service/deployment/helm', into: '/opt/events-cdc-service'
+                    sshCommand remote: kubernetes_master, command: "helm install events-cdc-service /opt/events-cdc-service/helm --set image.tag=${params.BUILD_VERSION} --set image.repository=${params.DOCKER_IMAGE_REPOSITORY}/events-cdc-service --namespace ${params.KUBERNETES_NAMESPACE}"
                 }
             }
         }
