@@ -50,11 +50,11 @@ pipeline {
                     // deploying events-postgres
                     sshCommand remote: kubernetes_master, command: "mkdir -p /opt/events-postgres"
                     sshPut remote: kubernetes_master, from: './events-db/events-postgres/deployment/helm', into: '/opt/events-postgres'
-                    sshCommand remote: kubernetes_master, command: "helm install events-postgres /opt/events-postgres/helm --set image.tag=${params.BUILD_VERSION} --set image.repository=${params.DOCKER_IMAGE_REPOSITORY}/events-postgres --namespace ${params.KUBERNETES_NAMESPACE}"
+                    sshCommand remote: kubernetes_master, command: "helm upgrade --install events-postgres /opt/events-postgres/helm --set image.tag=${params.BUILD_VERSION} --set image.repository=${params.DOCKER_IMAGE_REPOSITORY}/events-postgres --namespace ${params.KUBERNETES_NAMESPACE}"
                     // deploying events-cdc-service
                     sshCommand remote: kubernetes_master, command: "mkdir -p /opt/events-cdc-service"
                     sshPut remote: kubernetes_master, from: './events-cdc/events-cdc-service/deployment/helm', into: '/opt/events-cdc-service'
-                    sshCommand remote: kubernetes_master, command: "helm install events-cdc-service /opt/events-cdc-service/helm --set image.tag=${params.BUILD_VERSION} --set image.repository=${params.DOCKER_IMAGE_REPOSITORY}/events-cdc-service --namespace ${params.KUBERNETES_NAMESPACE}"
+                    sshCommand remote: kubernetes_master, command: "helm upgrade --install events-cdc-service /opt/events-cdc-service/helm --set image.tag=${params.BUILD_VERSION} --set image.repository=${params.DOCKER_IMAGE_REPOSITORY}/events-cdc-service --namespace ${params.KUBERNETES_NAMESPACE}"
                 }
             }
         }
