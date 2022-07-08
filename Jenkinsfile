@@ -1,4 +1,5 @@
 pipeline {
+
     agent any
 
     parameters {
@@ -10,10 +11,15 @@ pipeline {
         string(name: 'BUILD_VERSION', defaultValue: 'v0.0.1', description: 'Build version')
         // kubernetes deployment parameters
         string(name: 'KUBERNETES_NAMESPACE', defaultValue: 'events-cdc', description: 'Deploy application to specific namespace')
+        // docker
+        string(name: 'DOCKER_HOST', defaultValue: '10.110.38.26', description: 'Docker host')
+        string(name: 'DOCKER_PORT', defaultValue: '2375', description: 'Docker port')
         // docker image repository
         string(name: 'HARBOR_HOST', defaultValue: '10.110.38.26', description: 'Harbor host')
         string(name: 'HARBOR_PORT', defaultValue: '18080', description: 'Harbor port')
         string(name: 'HARBOR_PROJECT', defaultValue: 'library', description: 'Harbor project')
+        string(name: 'HARBOR_USER', defaultValue: 'admin', description: 'Harbor user')
+        string(name: 'HARBOR_PASS', defaultValue: 'Harbor12345', description: 'Harbor password')
     }
 
     stages {
@@ -27,7 +33,18 @@ pipeline {
                 sh './gradlew :events-db:events-postgres:dockerPushImage'
 
                 sh './gradlew :events-cdc:events-cdc-service:build'
-                sh './gradlew :events-cdc:events-cdc-service:bootBuildImage'
+
+                // Using Cloud Native Buildpacks. You do not need a Dockerfile any more!!!
+                sh """
+                    ./gradlew :events-cdc:events-cdc-service:bootBuildImage \
+                        -PdockerHost=${params.DOCKER_HOST} \
+                        -PdockerPort=${params.DOCKER_PORT} \
+                        -PharborHost=${params.HARBOR_HOST} \
+                        -PharborPort=${params.HARBOR_PORT} \
+                        -PharborProject=${params.HARBOR_PROJECT} \
+                        -PharborUser=${params.HARBOR_USER} \
+                        -PharborPass=${params.HARBOR_PASS}
+                """
             }
         }
         stage('Test') {
