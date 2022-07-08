@@ -29,13 +29,14 @@ pipeline {
 
                 sh './gradlew clean'
 
-                sh './gradlew :events-db:events-postgres:dockerBuildImage'
+                sh """
+                    ./gradlew :events-db:events-postgres:dockerBuildImage -PbuildVersion=${params.BUILD_VERSION}
+                """
                 sh './gradlew :events-db:events-postgres:dockerPushImage'
 
                 sh """
                     ./gradlew :events-cdc:events-cdc-service:build -PbuildVersion=${params.BUILD_VERSION}
                 """
-
                 // Using Cloud Native Buildpacks. You do not need a Dockerfile any more!!!
                 sh """
                     ./gradlew :events-cdc:events-cdc-service:bootBuildImage \
