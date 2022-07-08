@@ -30,16 +30,43 @@ pipeline {
                 sh './gradlew clean'
 
                 sh """
-                    ./gradlew :events-db:events-postgres:dockerBuildImage -PbuildVersion=${params.BUILD_VERSION}
+                    ./gradlew :events-db:events-postgres:dockerBuildImage \
+                        -PbuildVersion=${params.BUILD_VERSION} \
+                        -PdockerHost=${params.DOCKER_HOST} \
+                        -PdockerPort=${params.DOCKER_PORT} \
+                        -PharborHost=${params.HARBOR_HOST} \
+                        -PharborPort=${params.HARBOR_PORT} \
+                        -PharborProject=${params.HARBOR_PROJECT} \
+                        -PharborUser=${params.HARBOR_USER} \
+                        -PharborPass=${params.HARBOR_PASS}
                 """
-                sh './gradlew :events-db:events-postgres:dockerPushImage'
+                sh """
+                    ./gradlew :events-db:events-postgres:dockerPushImage \
+                        -PbuildVersion=${params.BUILD_VERSION} \
+                        -PdockerHost=${params.DOCKER_HOST} \
+                        -PdockerPort=${params.DOCKER_PORT} \
+                        -PharborHost=${params.HARBOR_HOST} \
+                        -PharborPort=${params.HARBOR_PORT} \
+                        -PharborProject=${params.HARBOR_PROJECT} \
+                        -PharborUser=${params.HARBOR_USER} \
+                        -PharborPass=${params.HARBOR_PASS}
+                """
 
                 sh """
-                    ./gradlew :events-cdc:events-cdc-service:build -PbuildVersion=${params.BUILD_VERSION}
+                    ./gradlew :events-cdc:events-cdc-service:build \
+                        -PbuildVersion=${params.BUILD_VERSION} \
+                        -PdockerHost=${params.DOCKER_HOST} \
+                        -PdockerPort=${params.DOCKER_PORT} \
+                        -PharborHost=${params.HARBOR_HOST} \
+                        -PharborPort=${params.HARBOR_PORT} \
+                        -PharborProject=${params.HARBOR_PROJECT} \
+                        -PharborUser=${params.HARBOR_USER} \
+                        -PharborPass=${params.HARBOR_PASS}
                 """
                 // Using Cloud Native Buildpacks. You do not need a Dockerfile any more!!!
                 sh """
                     ./gradlew :events-cdc:events-cdc-service:bootBuildImage \
+                        -PbuildVersion=${params.BUILD_VERSION} \
                         -PdockerHost=${params.DOCKER_HOST} \
                         -PdockerPort=${params.DOCKER_PORT} \
                         -PharborHost=${params.HARBOR_HOST} \
