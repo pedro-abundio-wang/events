@@ -18,10 +18,12 @@ pipeline {
         string(name: 'BUILD_VERSION', defaultValue: 'v0.0.1', description: 'Build version')
         // kubernetes deployment parameters
         string(name: 'KUBERNETES_NAMESPACE', defaultValue: 'events-cdc', description: 'Deploy application to specific namespace')
-        // docker
-        string(name: 'DOCKER_HOST', defaultValue: '10.110.38.26', description: 'Docker host')
-        string(name: 'DOCKER_PORT', defaultValue: '2375', description: 'Docker port')
-        // docker image repository
+        // harbor docker
+        // the following 2 parameters can not name 'DOCKER_HOST' and 'DOCKER_PORT'
+        // because unknown fucking bugs, guess those key word conflict with jenkins
+        string(name: 'HARBOR_DOCKER_HOST', defaultValue: '10.110.38.26', description: 'Harbor docker host')
+        string(name: 'HARBOR_DOCKER_PORT', defaultValue: '2375', description: 'Harbor docker port')
+        // harbor
         string(name: 'HARBOR_HOST', defaultValue: '10.110.38.26', description: 'Harbor host')
         string(name: 'HARBOR_PORT', defaultValue: '18080', description: 'Harbor port')
         string(name: 'HARBOR_PROJECT', defaultValue: 'library', description: 'Harbor project')
@@ -39,8 +41,8 @@ pipeline {
                 sh """
                     ./gradlew :events-db:events-postgres:dockerBuildImage \
                         -PbuildVersion=${params.BUILD_VERSION} \
-                        -PdockerHost=${params.DOCKER_HOST} \
-                        -PdockerPort=${params.DOCKER_PORT} \
+                        -PdockerHost=${params.HARBOR_DOCKER_HOST} \
+                        -PdockerPort=${params.HARBOR_DOCKER_PORT} \
                         -PharborHost=${params.HARBOR_HOST} \
                         -PharborPort=${params.HARBOR_PORT} \
                         -PharborProject=${params.HARBOR_PROJECT} \
@@ -50,8 +52,8 @@ pipeline {
                 sh """
                     ./gradlew :events-db:events-postgres:dockerPushImage \
                         -PbuildVersion=${params.BUILD_VERSION} \
-                        -PdockerHost=${params.DOCKER_HOST} \
-                        -PdockerPort=${params.DOCKER_PORT} \
+                        -PdockerHost=${params.HARBOR_DOCKER_HOST} \
+                        -PdockerPort=${params.HARBOR_DOCKER_PORT} \
                         -PharborHost=${params.HARBOR_HOST} \
                         -PharborPort=${params.HARBOR_PORT} \
                         -PharborProject=${params.HARBOR_PROJECT} \
@@ -62,8 +64,8 @@ pipeline {
                 sh """
                     ./gradlew :events-cdc:events-cdc-service:build \
                         -PbuildVersion=${params.BUILD_VERSION} \
-                        -PdockerHost=${params.DOCKER_HOST} \
-                        -PdockerPort=${params.DOCKER_PORT} \
+                        -PdockerHost=${params.HARBOR_DOCKER_HOST} \
+                        -PdockerPort=${params.HARBOR_DOCKER_PORT} \
                         -PharborHost=${params.HARBOR_HOST} \
                         -PharborPort=${params.HARBOR_PORT} \
                         -PharborProject=${params.HARBOR_PROJECT} \
@@ -74,8 +76,8 @@ pipeline {
                 sh """
                     ./gradlew :events-cdc:events-cdc-service:bootBuildImage \
                         -PbuildVersion=${params.BUILD_VERSION} \
-                        -PdockerHost=${params.DOCKER_HOST} \
-                        -PdockerPort=${params.DOCKER_PORT} \
+                        -PdockerHost=${params.HARBOR_DOCKER_HOST} \
+                        -PdockerPort=${params.HARBOR_DOCKER_PORT} \
                         -PharborHost=${params.HARBOR_HOST} \
                         -PharborPort=${params.HARBOR_PORT} \
                         -PharborProject=${params.HARBOR_PROJECT} \
