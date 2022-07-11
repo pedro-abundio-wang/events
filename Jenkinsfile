@@ -11,7 +11,7 @@ pipeline {
 
     parameters {
         // kubernetes master parameters
-        string(name: 'KUBERNETES_MASTER', defaultValue: '', description: 'Kubernetes master node ip address')
+        string(name: 'KUBERNETES_MASTER', defaultValue: '10.110.38.32', description: 'Kubernetes master node ip address')
         string(name: 'KUBERNETES_MASTER_OS_USER', defaultValue: 'root', description: 'Kubernetes master node os username')
         string(name: 'KUBERNETES_MASTER_OS_PASS', defaultValue: 'root', description: 'Kubernetes master node os password')
         // build parameters
