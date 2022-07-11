@@ -2,6 +2,11 @@ pipeline {
 
     agent any
 
+    options {
+        // skip checkout scm if you want for debug
+        // skipDefaultCheckout()
+    }
+
     parameters {
         // kubernetes master parameters
         string(name: 'KUBERNETES_MASTER', defaultValue: '', description: 'Kubernetes master node ip address')
