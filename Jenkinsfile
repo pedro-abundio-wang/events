@@ -3,6 +3,8 @@ pipeline {
     agent any
 
     options {
+        // timeout period for the pipeline run
+        timeout(time: 1, unit: 'HOURS')
         // skip checkout scm if you want for debug
         // skipDefaultCheckout()
     }
