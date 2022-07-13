@@ -1,0 +1,10 @@
+logging:
+  level:
+    com.events: DEBUG
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${OS_ENV_PG_HOST:localhost}:5432/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
