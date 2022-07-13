@@ -47,7 +47,8 @@ pipeline {
                         -PharborPort=${params.HARBOR_PORT} \
                         -PharborProject=${params.HARBOR_PROJECT} \
                         -PharborUser=${params.HARBOR_USER} \
-                        -PharborPass=${params.HARBOR_PASS}
+                        -PharborPass=${params.HARBOR_PASS} \
+                        –exclude-task test
                 """
                 sh """
                     ./gradlew :events-db:events-postgres:dockerPushImage \
@@ -58,7 +59,8 @@ pipeline {
                         -PharborPort=${params.HARBOR_PORT} \
                         -PharborProject=${params.HARBOR_PROJECT} \
                         -PharborUser=${params.HARBOR_USER} \
-                        -PharborPass=${params.HARBOR_PASS}
+                        -PharborPass=${params.HARBOR_PASS} \
+                        –exclude-task test
                 """
 
                 sh """
@@ -70,7 +72,8 @@ pipeline {
                         -PharborPort=${params.HARBOR_PORT} \
                         -PharborProject=${params.HARBOR_PROJECT} \
                         -PharborUser=${params.HARBOR_USER} \
-                        -PharborPass=${params.HARBOR_PASS}
+                        -PharborPass=${params.HARBOR_PASS} \
+                        –exclude-task test
                 """
                 // Using Cloud Native Buildpacks. You do not need a Dockerfile any more!!!
                 sh """
@@ -82,13 +85,17 @@ pipeline {
                         -PharborPort=${params.HARBOR_PORT} \
                         -PharborProject=${params.HARBOR_PROJECT} \
                         -PharborUser=${params.HARBOR_USER} \
-                        -PharborPass=${params.HARBOR_PASS}
+                        -PharborPass=${params.HARBOR_PASS} \
+                        –exclude-task test
                 """
             }
         }
         stage('Test') {
             steps {
                 echo 'Unit Test'
+                sh """
+                    ./gradlew :events-common:events-common-id:test
+                """
                 echo 'Integration Test'
                 sh """
                     ./gradlew :events-db:events-postgres:composeUp
