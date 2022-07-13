@@ -24,6 +24,10 @@ subprojects {
         mavenCentral()
     }
 
+    integrationTest {
+        systemProperties System.properties
+    }
+
     publishing {
         publications {
             eventsCommon(MavenPublication) {
