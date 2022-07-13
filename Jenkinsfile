@@ -90,6 +90,11 @@ pipeline {
             steps {
                 echo 'Unit Test'
                 echo 'Integration Test'
+                sh """
+                    ./gradlew :events-db:events-postgres:composeUp
+                    ./gradlew :events-common:events-common-jdbc:integrationTest
+                    ./gradlew :events-db:events-postgres:composeDown
+                """
                 echo 'Component Test'
                 echo 'E2E Test'
             }
