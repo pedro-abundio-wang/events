@@ -30,6 +30,7 @@ dependencies {
 bootBuildImage {
     imageName = "${harborHost}:${harborPort}/${harborProject}/${project.name}:${project.version}"
     publish = true
+    pullPolicy = "IF_NOT_PRESENT"
     docker {
         host = "tcp://${dockerHost}:${dockerPort}"
         publishRegistry {

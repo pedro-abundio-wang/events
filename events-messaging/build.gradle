@@ -10,7 +10,7 @@ buildscript {
 subprojects {
 
     group 'com.events.messaging'
-    version 'v0.0.1'
+    version "${buildVersion}"
 
     apply plugin: 'java'
     apply plugin: 'maven-publish'

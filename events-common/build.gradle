@@ -10,7 +10,7 @@ buildscript {
 subprojects {
 
     group 'com.events.common'
-    version 'v0.0.1'
+    version "${buildVersion}"
 
     apply plugin: 'java'
     apply plugin: 'java-library'
@@ -22,6 +22,10 @@ subprojects {
 
     repositories {
         mavenCentral()
+    }
+
+    integrationTest {
+        systemProperties System.properties
     }
 
     publishing {

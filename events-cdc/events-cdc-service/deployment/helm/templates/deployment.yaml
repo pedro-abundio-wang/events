@@ -1,25 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: events-cdc-service
+  name: {{ include "events-cdc-service.fullname" . }}
   labels:
-    app: events-cdc-service
+    {{- include "events-cdc-service.labels" . | nindent 4 }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: events-cdc-service
+      {{- include "events-cdc-service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: events-cdc-service
+        {{- include "events-cdc-service.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-        - name: events-cdc-service
-          image: events-cdc-service
-          imagePullPolicy: Always
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8080
+              protocol: TCP
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: kafka, zookeeper
@@ -50,14 +52,16 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: http
             initialDelaySeconds: 60
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: http
             initialDelaySeconds: 60
             periodSeconds: 60
             timeoutSeconds: 30
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
