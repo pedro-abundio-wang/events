@@ -92,7 +92,7 @@ pipeline {
                 echo 'Integration Test'
                 sh """
                     ./gradlew :events-db:events-postgres:composeUp
-                    ./gradlew :events-common:events-common-jdbc:integrationTest
+                    ./gradlew :events-common:events-common-jdbc:integrationTest -DOS_ENV_PG_HOST=localhost
                     ./gradlew :events-db:events-postgres:composeDown
                 """
                 echo 'Component Test'
