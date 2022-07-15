@@ -15,19 +15,16 @@ services:
     image: confluentinc/cp-kafka:5.2.4
     ports:
       - "9092:9092"
-      - "29092:29092"
     depends_on:
       - zookeeper
     environment:
+      # https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/?utm_source=github&utm_medium=rmoff&utm_campaign=ty.community.con.rmoff-listeners&utm_term=rmoff-devx
       # https://www.confluent.io/blog/kafka-listeners-explained/
-      KAFKA_LISTENERS: LC://kafka:29092,LX://kafka:9092
-      KAFKA_ADVERTISED_LISTENERS: LC://kafka:29092,LX://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LC:PLAINTEXT,LX:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: LC
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_HEAP_OPTS: -Xmx192m
   events-postgres:
+    image: events-postgres:${buildVersion:-latest}
     build: ../../../../events-db/events-postgres/deployment/docker
     ports:
       - "5432:5432"
@@ -36,8 +33,13 @@ services:
       POSTGRES_PASSWORD: postgres
       USE_DB_ID: ${USE_DB_ID}
       USE_JSON_PAYLOAD_AND_HEADERS: ${USE_JSON_PAYLOAD_AND_HEADERS}
-  eventuate-cdc-service:
-    build: ../docker
+  events-cdc-service:
+    image: events-cdc-service:${buildVersion:-latest}
+    build:
+      context: ../../
+      dockerfile: ./deployment/docker/Dockerfile
+      args:
+        buildVersion: ${buildVersion}
     ports:
       - "8080:8080"
     links:
@@ -45,9 +47,13 @@ services:
       - kafka
       - redis
       - zookeeper
+    depends_on:
+      - events-postgres
+      - kafka
+      - redis
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-      EVENTS_CDC_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EVENTS_CDC_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       EVENTS_CDC_ZOOKEEPER_CONNECTION_STRING: zookeeper:2181
 #      EVENTS_CDC_READER_MYSQLREADER_TYPE: mysql-binlog
 #      EVENTS_CDC_READER_MYSQLREADER_DATASOURCEURL: jdbc:mysql://events-mysql:3306/events

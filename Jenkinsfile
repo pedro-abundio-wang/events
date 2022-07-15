@@ -102,6 +102,11 @@ pipeline {
                     ./gradlew :events-common:events-common-jdbc:integrationTest -DOS_ENV_PG_HOST=localhost
                     ./gradlew :events-db:events-postgres:composeDown
                 """
+                sh """
+                    SPRING_PROFILES_ACTIVE=kafka,zookeeper buildVersion=${params.BUILD_VERSION} USE_DB_ID=false USE_JSON_PAYLOAD_AND_HEADERS=false ./gradlew :events-cdc:events-cdc-service:composeUp
+                    ./gradlew :events-cdc:events-cdc-service:integrationTest --tests "com.events.cdc.service.performance.PerformanceTest.testAllEventsSameTopicSameId"
+                    ./gradlew :events-cdc:events-cdc-service:composeDown
+                """
                 echo 'Component Test'
                 echo 'E2E Test'
             }
