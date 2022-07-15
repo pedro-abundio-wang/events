@@ -48,7 +48,7 @@ pipeline {
                         -PharborProject=${params.HARBOR_PROJECT} \
                         -PharborUser=${params.HARBOR_USER} \
                         -PharborPass=${params.HARBOR_PASS} \
-                        –exclude-task test
+                        -–exclude-task test
                 """
                 sh """
                     ./gradlew :events-db:events-postgres:dockerPushImage \
@@ -60,7 +60,7 @@ pipeline {
                         -PharborProject=${params.HARBOR_PROJECT} \
                         -PharborUser=${params.HARBOR_USER} \
                         -PharborPass=${params.HARBOR_PASS} \
-                        –exclude-task test
+                        -–exclude-task test
                 """
 
                 sh """
@@ -73,7 +73,7 @@ pipeline {
                         -PharborProject=${params.HARBOR_PROJECT} \
                         -PharborUser=${params.HARBOR_USER} \
                         -PharborPass=${params.HARBOR_PASS} \
-                        –exclude-task test
+                        -–exclude-task test
                 """
                 // Using Cloud Native Buildpacks. You do not need a Dockerfile any more!!!
                 sh """
@@ -86,7 +86,7 @@ pipeline {
                         -PharborProject=${params.HARBOR_PROJECT} \
                         -PharborUser=${params.HARBOR_USER} \
                         -PharborPass=${params.HARBOR_PASS} \
-                        –exclude-task test
+                        -–exclude-task test
                 """
             }
         }
