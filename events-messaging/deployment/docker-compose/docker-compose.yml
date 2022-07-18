@@ -1,5 +1,18 @@
 version: '3'
 services:
+  activemq:
+    build: ../docker/activemq/
+    hostname: activemq
+    container_name: activemq
+    volumes:
+      - '../docker/activemq/conf/activemq.xml:/opt/apache-activemq-5.16.0/conf/activemq.xml'
+    ports:
+      - "1883:1883"
+      - "5672:5672"
+      - "8161:8161"
+      - "61613:61613"
+      - "61614:61614"
+      - "61616:61616"
   redis:
     image: redis:5.0.3
     hostname: redis

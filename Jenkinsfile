@@ -122,6 +122,7 @@ pipeline {
                 echo 'Integration Test: events-messaging'
                 sh """
                     ./gradlew :events-messaging:composeUp
+                    ./gradlew :events-messaging:events-messaging-activemq:integrationTest -DOS_ENV_ACTIVEMQ_HOST=localhost
                     ./gradlew :events-messaging:events-messaging-kafka:integrationTest -DOS_ENV_KAFKA_HOST=localhost
                     ./gradlew :events-messaging:composeDown
                 """
