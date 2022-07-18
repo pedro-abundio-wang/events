@@ -1,17 +1,18 @@
-package com.events.cdc.service.reader;
+package com.events.cdc.service.helper;
 
-import com.events.cdc.connector.db.transaction.log.messaging.MessageWithDestination;
 import com.events.cdc.connector.db.transaction.log.converter.TransactionLogEntryConverter;
 import com.events.cdc.connector.db.transaction.log.converter.TransactionLogEntryToMessageWithDestinationConverter;
-import com.events.cdc.reader.CdcReader;
+import com.events.cdc.connector.db.transaction.log.messaging.EventWithSourcing;
+import com.events.cdc.connector.db.transaction.log.messaging.MessageWithDestination;
 import com.events.cdc.connector.db.transaction.log.messaging.TransactionLogMessage;
+import com.events.cdc.reader.CdcReader;
+import com.events.cdc.reader.SourceTableNameSupplier;
 import com.events.cdc.service.reader.assertion.MessageWithDestinationAssertionCallback;
 import com.events.cdc.service.reader.assertion.TransactionLogMessageAssert;
 import com.events.common.id.IdGenerator;
 import com.events.common.jdbc.operation.EventsJdbcOperations;
 import com.events.common.jdbc.schema.EventsSchema;
 import org.apache.commons.lang3.StringUtils;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
@@ -37,18 +38,18 @@ public class TestHelper {
   // Event Sourcing ----------------------------------- //
   // -------------------------------------------------- //
 
-  public EventSourcing saveRandomEvent() {
+  public EventWithSourcing saveRandomEvent() {
     return saveEvent(getTestEntityType(), getTestCreatedEventType(), generateId());
   }
 
-  public EventSourcing saveEvent(String entityType, String eventType, String eventData) {
+  public EventWithSourcing saveEvent(String entityType, String eventType, String eventData) {
     String entityId = generateId();
     return saveEvent(entityType, eventType, eventData, entityId);
   }
 
-  public EventSourcing saveEvent(
+  public EventWithSourcing saveEvent(
       String entityType, String eventType, String eventData, String entityId) {
-    String eventId =
+    String id =
         eventsJdbcOperations.insertIntoEventsTable(
             idGenerator,
             entityId,
@@ -58,7 +59,8 @@ public class TestHelper {
             Optional.empty(),
             Optional.empty());
 
-    return new EventSourcing(eventData, eventId, entityId);
+    return new EventWithSourcing(
+        id, entityId, entityType, eventData, eventType, null, Optional.empty());
   }
 
   public String getEventTopicName() {
@@ -101,15 +103,14 @@ public class TestHelper {
 
   public TransactionLogMessageAssert<MessageWithDestination> prepareTransactionLogMessageAssertion(
       CdcReader cdcReader) {
-    return prepareTransactionLogMessageAssertion(
-            cdcReader, transactionLogMessage -> {});
+    return prepareTransactionLogMessageAssertion(cdcReader, transactionLogMessage -> {});
   }
 
   public TransactionLogMessageAssert<MessageWithDestination> prepareTransactionLogMessageAssertion(
       CdcReader cdcReader,
       MessageWithDestinationAssertionCallback<MessageWithDestination> onMessageSentCallback) {
     return prepareTransactionLogEntryHandlerAssertion(
-            cdcReader,
+        cdcReader,
         new TransactionLogEntryToMessageWithDestinationConverter(idGenerator),
         onMessageSentCallback);
   }

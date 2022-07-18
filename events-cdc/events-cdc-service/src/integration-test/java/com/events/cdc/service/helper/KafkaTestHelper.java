@@ -1,6 +1,5 @@
-package com.events.cdc.service.publisher;
+package com.events.cdc.service.helper;
 
-import com.events.cdc.service.reader.TestHelper;
 import com.events.messaging.kafka.common.KafkaMultiMessage;
 import com.events.messaging.kafka.common.KafkaMultiMessageConverter;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -47,8 +46,7 @@ public class KafkaTestHelper extends TestHelper {
 
   public void waitForEventInKafka(
       KafkaConsumer<String, byte[]> consumer, String entityId, LocalDateTime deadline) {
-    KafkaMultiMessageConverter kafkaMultiMessageConverter =
-        new KafkaMultiMessageConverter();
+    KafkaMultiMessageConverter kafkaMultiMessageConverter = new KafkaMultiMessageConverter();
     while (LocalDateTime.now().isBefore(deadline)) {
       long millis = ChronoUnit.MILLIS.between(LocalDateTime.now(), deadline);
       ConsumerRecords<String, byte[]> records = consumer.poll(millis);

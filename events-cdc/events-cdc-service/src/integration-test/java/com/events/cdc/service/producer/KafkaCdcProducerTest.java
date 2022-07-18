@@ -1,12 +1,11 @@
-package com.events.cdc.service.publisher;
+package com.events.cdc.service.producer;
 
-import com.events.cdc.service.config.others.EventsCdcProperties;
 import com.events.cdc.publisher.producer.wrappers.kafka.KafkaCdcProducer;
-import com.events.messaging.kafka.properties.KafkaProperties;
-import com.events.messaging.kafka.producer.KafkaMessageProducer;
+import com.events.cdc.service.config.others.EventsCdcProperties;
 import com.events.messaging.kafka.config.KafkaMessageProducerConfiguration;
+import com.events.messaging.kafka.producer.KafkaMessageProducer;
 import com.events.messaging.kafka.properties.KafkaMessageProducerProperties;
-import com.events.messaging.kafka.config.KafkaConfiguration;
+import com.events.messaging.kafka.properties.KafkaProperties;
 import io.micrometer.core.instrument.logging.LoggingMeterRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,7 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = KafkaCdcProducerTest.TestConfiguration.class)
-@ActiveProfiles("${SPRING_PROFILES_ACTIVE:postgresql}")
+@ActiveProfiles("kafka")
 public class KafkaCdcProducerTest {
 
   @Autowired private KafkaProperties kafkaProperties;
@@ -48,10 +47,10 @@ public class KafkaCdcProducerTest {
 
   @Configuration
   @EnableAutoConfiguration
-  @Import({KafkaConfiguration.class, KafkaMessageProducerConfiguration.class})
+  @Import({KafkaMessageProducerConfiguration.class})
   public static class TestConfiguration {
     @Bean
-    public EventsCdcProperties eventsCdcConfigurationProperties() {
+    public EventsCdcProperties eventsCdcProperties() {
       return new EventsCdcProperties();
     }
   }
