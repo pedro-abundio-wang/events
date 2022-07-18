@@ -90,25 +90,60 @@ pipeline {
                 """
             }
         }
-        stage('Test') {
+        stage('Unit Test') {
             steps {
-                echo 'Unit Test'
+                echo 'Unit Test: events-common'
                 sh """
                     ./gradlew :events-common:events-common-id:test
+                    ./gradlew :events-common:events-common-tools:test
                 """
-                echo 'Integration Test'
+            }
+        }
+
+        stage('Integration Test') {
+            steps {
+                echo 'Integration Test: events-common'
                 sh """
                     USE_DB_ID=false USE_JSON_PAYLOAD_AND_HEADERS=false ./gradlew :events-db:events-postgres:composeUp
                     ./gradlew :events-common:events-common-jdbc:integrationTest -DOS_ENV_PG_HOST=localhost
                     ./gradlew :events-db:events-postgres:composeDown
                 """
+
+                echo 'Integration Test: events-core'
+                sh """
+                    USE_DB_ID=false USE_JSON_PAYLOAD_AND_HEADERS=false ./gradlew :events-db:events-postgres:composeUp
+                    ./gradlew :events-core:events-core-messaging:integrationTest -DOS_ENV_PG_HOST=localhost
+                    ./gradlew :events-core:events-core-commands:integrationTest -DOS_ENV_PG_HOST=localhost
+                    ./gradlew :events-core:events-core-domain:integrationTest -DOS_ENV_PG_HOST=localhost
+                    ./gradlew :events-db:events-postgres:composeDown
+                """
+
+                // should RabbitMQ, Redis
+                echo 'Integration Test: events-messaging'
+                sh """
+                    ./gradlew :events-messaging:composeUp
+                    ./gradlew :events-messaging:events-messaging-kafka:integrationTest -DOS_ENV_KAFKA_HOST=localhost
+                    ./gradlew :events-messaging:composeDown
+                """
+
+                echo 'Integration Test: events-cdc'
                 sh """
                     SPRING_PROFILES_ACTIVE=kafka,zookeeper buildVersion=${params.BUILD_VERSION} USE_DB_ID=false USE_JSON_PAYLOAD_AND_HEADERS=false ./gradlew :events-cdc:events-cdc-service:composeUp
                     ./gradlew :events-cdc:events-cdc-service:integrationTest --tests "com.events.cdc.service.performance.PerformanceTest.testAllEventsSameTopicSameId"
                     ./gradlew :events-cdc:events-cdc-service:composeDown
                 """
-                echo 'Component Test'
-                echo 'E2E Test'
+            }
+        }
+
+        stage('Component Test') {
+            steps {
+                echo '...'
+            }
+        }
+
+        stage('E2E Test') {
+            steps {
+                echo '...'
             }
         }
         stage('Deploy') {
