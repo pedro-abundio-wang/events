@@ -90,7 +90,7 @@ public class CommandHandlerUnitTestSupport {
     return verifyReply(c);
   }
 
-  public CommandHandlerUnitTestSupport verifyReply(Consumer<Message> c) {
+  private CommandHandlerUnitTestSupport verifyReply(Consumer<Message> c) {
     c.accept(replyMessage);
     return this;
   }
