@@ -2,7 +2,6 @@ package com.events.messaging.kafka.producer;
 
 import com.events.common.json.mapper.JsonMapper;
 import com.events.common.util.Eventually;
-import com.events.messaging.kafka.config.KafkaConfiguration;
 import com.events.messaging.kafka.config.KafkaMessageConsumerConfiguration;
 import com.events.messaging.kafka.config.KafkaMessageProducerConfiguration;
 import com.events.messaging.kafka.consumer.KafkaMessageConsumer;
@@ -59,7 +58,6 @@ public class KafkaTest {
   @Configuration
   @EnableAutoConfiguration
   @Import({
-    KafkaConfiguration.class,
     KafkaMessageProducerConfiguration.class,
     KafkaMessageConsumerConfiguration.class
   })

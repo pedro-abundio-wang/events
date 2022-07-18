@@ -8,14 +8,13 @@ import com.events.cdc.publisher.producer.CdcProducerFactory;
 import com.events.cdc.publisher.producer.wrappers.kafka.KafkaCdcProducer;
 import com.events.cdc.publisher.strategy.EventWithSourcingPublishingStrategy;
 import com.events.cdc.publisher.strategy.PublishingStrategy;
+import com.events.cdc.reader.SourceTableNameSupplier;
 import com.events.cdc.service.config.others.EventsCdcProperties;
+import com.events.cdc.service.helper.TestHelper;
 import com.events.cdc.service.properties.ZookeeperProperties;
-import com.events.cdc.service.reader.SourceTableNameSupplier;
-import com.events.cdc.service.reader.TestHelper;
 import com.events.common.id.spring.config.IdGeneratorConfiguration;
 import com.events.common.jdbc.schema.EventsSchema;
 import com.events.common.jdbc.spring.config.EventsJdbcOperationsConfiguration;
-import com.events.messaging.kafka.config.KafkaConfiguration;
 import com.events.messaging.kafka.config.KafkaMessageConsumerConfiguration;
 import com.events.messaging.kafka.config.KafkaMessageProducerConfiguration;
 import com.events.messaging.kafka.consumer.basic.KafkaConsumerFactory;
@@ -42,13 +41,12 @@ import javax.sql.DataSource;
 @Configuration
 @EnableAutoConfiguration
 @Import({
-  KafkaConfiguration.class,
   KafkaMessageProducerConfiguration.class,
   KafkaMessageConsumerConfiguration.class,
   EventsJdbcOperationsConfiguration.class,
   IdGeneratorConfiguration.class
 })
-public class PostgresWalCdcIntegrationTestConfiguration {
+public class PostgreSqlWalKafkaCdcTestConfiguration {
 
   @Bean
   public SourceTableNameSupplier sourceTableNameSupplier(EventsCdcProperties eventsCdcProperties) {
@@ -59,7 +57,7 @@ public class PostgresWalCdcIntegrationTestConfiguration {
   }
 
   @Bean
-  public EventsCdcProperties eventsCdcConfigurationProperties() {
+  public EventsCdcProperties eventsCdcProperties() {
     return new EventsCdcProperties();
   }
 
@@ -101,7 +99,7 @@ public class PostgresWalCdcIntegrationTestConfiguration {
   }
 
   @Bean
-  public CdcPublisher<EventWithSourcing> transactionLogBasedCdcKafkaPublisher(
+  public CdcPublisher<EventWithSourcing> transactionLogBasedKafkaCdcPublisher(
       CdcProducerFactory cdcProducerFactory,
       KafkaProperties kafkaProperties,
       KafkaMessageConsumerProperties kafkaMessageConsumerProperties,
@@ -120,7 +118,7 @@ public class PostgresWalCdcIntegrationTestConfiguration {
   }
 
   @Bean
-  public KafkaMessageProducer eventsKafkaProducer(
+  public KafkaMessageProducer kafkaMessageProducer(
       KafkaProperties kafkaProperties,
       KafkaMessageProducerProperties kafkaMessageProducerProperties) {
     return new KafkaMessageProducer(

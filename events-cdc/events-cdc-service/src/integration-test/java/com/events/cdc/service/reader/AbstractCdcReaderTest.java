@@ -2,6 +2,7 @@ package com.events.cdc.service.reader;
 
 import com.events.cdc.connector.db.transaction.log.messaging.MessageWithDestination;
 import com.events.cdc.reader.CdcReader;
+import com.events.cdc.service.helper.TestHelper;
 import com.events.cdc.service.reader.assertion.MessageWithDestinationAssertOperationBuilder;
 import com.events.cdc.service.reader.assertion.TransactionLogMessageAssert;
 import com.events.common.id.IdGenerator;

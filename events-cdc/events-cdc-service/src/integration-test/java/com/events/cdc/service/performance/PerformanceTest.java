@@ -3,8 +3,8 @@ package com.events.cdc.service.performance;
 import com.events.cdc.connector.db.transaction.log.converter.TransactionLogEntryToEventWithSourcingConverter;
 import com.events.cdc.connector.db.transaction.log.messaging.EventWithSourcing;
 import com.events.cdc.connector.postgres.wal.PostgresWalClient;
-import com.events.cdc.service.reader.SourceTableNameSupplier;
-import com.events.cdc.service.reader.TestHelper;
+import com.events.cdc.reader.SourceTableNameSupplier;
+import com.events.cdc.service.helper.TestHelper;
 import com.events.cdc.publisher.CdcPublisher;
 import com.events.cdc.publisher.filter.PublishingFilter;
 import com.events.common.id.ApplicationIdGenerator;
@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
@@ -35,13 +36,14 @@ import java.util.stream.Collectors;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {PerformanceTest.TestConfiguration.class})
+@ActiveProfiles("kafka")
 public class PerformanceTest {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   @Configuration
   @EnableAutoConfiguration
-  @Import({PostgresWalCdcIntegrationTestConfiguration.class, OffsetStoreMockConfiguration.class})
+  @Import({PostgreSqlWalKafkaCdcTestConfiguration.class, OffsetStoreMockConfiguration.class})
   public static class TestConfiguration {
     @Bean
     @Primary
