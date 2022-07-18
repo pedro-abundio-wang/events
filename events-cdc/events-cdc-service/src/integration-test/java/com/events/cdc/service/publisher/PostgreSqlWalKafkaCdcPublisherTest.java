@@ -9,12 +9,12 @@ import com.events.cdc.publisher.producer.CdcProducerFactory;
 import com.events.cdc.publisher.producer.wrappers.kafka.KafkaCdcProducer;
 import com.events.cdc.publisher.strategy.MessageWithDestinationPublishingStrategy;
 import com.events.cdc.publisher.strategy.PublishingStrategy;
+import com.events.cdc.reader.SourceTableNameSupplier;
 import com.events.cdc.service.config.others.EventsCdcProperties;
-import com.events.cdc.service.reader.SourceTableNameSupplier;
+import com.events.cdc.service.helper.KafkaTestHelper;
 import com.events.common.id.spring.config.IdGeneratorConfiguration;
 import com.events.common.jdbc.schema.EventsSchema;
 import com.events.common.jdbc.spring.config.EventsJdbcOperationsConfiguration;
-import com.events.messaging.kafka.config.KafkaConfiguration;
 import com.events.messaging.kafka.config.KafkaMessageConsumerConfiguration;
 import com.events.messaging.kafka.config.KafkaMessageConsumerFactoryConfiguration;
 import com.events.messaging.kafka.config.KafkaMessageProducerConfiguration;
@@ -39,9 +39,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import javax.sql.DataSource;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = PostgreSqlWalCdcKafkaTest.TestConfiguration.class)
-@ActiveProfiles("${SPRING_PROFILES_ACTIVE:postgresql}")
-public class PostgreSqlWalCdcKafkaTest extends AbstractTransactionLogCdcKafkaTest {
+@SpringBootTest(classes = PostgreSqlWalKafkaCdcPublisherTest.TestConfiguration.class)
+@ActiveProfiles("kafka")
+public class PostgreSqlWalKafkaCdcPublisherTest extends AbstractKafkaCdcPublisherTest {
 
   @Autowired private PostgresWalClient postgresWalClient;
 
@@ -67,7 +67,6 @@ public class PostgreSqlWalCdcKafkaTest extends AbstractTransactionLogCdcKafkaTes
   @Configuration
   @EnableAutoConfiguration
   @Import({
-    KafkaConfiguration.class,
     KafkaMessageProducerConfiguration.class,
     KafkaMessageConsumerConfiguration.class,
     KafkaMessageConsumerFactoryConfiguration.class,
@@ -77,7 +76,7 @@ public class PostgreSqlWalCdcKafkaTest extends AbstractTransactionLogCdcKafkaTes
   public static class TestConfiguration {
 
     @Bean
-    public EventsCdcProperties eventsCdcConfigurationProperties() {
+    public EventsCdcProperties eventsCdcProperties() {
       return new EventsCdcProperties();
     }
 

@@ -1,7 +1,9 @@
 package com.events.cdc.service.reader;
 
-import com.events.cdc.service.config.others.EventsCdcProperties;
 import com.events.cdc.connector.postgres.wal.PostgresWalClient;
+import com.events.cdc.reader.SourceTableNameSupplier;
+import com.events.cdc.service.config.others.EventsCdcProperties;
+import com.events.cdc.service.helper.TestHelper;
 import com.events.common.id.spring.config.IdGeneratorConfiguration;
 import com.events.common.jdbc.schema.EventsSchema;
 import com.events.common.jdbc.spring.config.EventsJdbcOperationsConfiguration;
@@ -13,14 +15,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.sql.DataSource;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = PostgresWalMessageTableTest.TestConfiguration.class)
-@ActiveProfiles("postgresql")
 public class PostgresWalMessageTableTest extends AbstractCdcReaderTest {
 
   @Configuration
@@ -29,7 +29,7 @@ public class PostgresWalMessageTableTest extends AbstractCdcReaderTest {
   public static class TestConfiguration {
 
     @Bean
-    public EventsCdcProperties eventsCdcConfigurationProperties() {
+    public EventsCdcProperties eventsCdcProperties() {
       return new EventsCdcProperties();
     }
 

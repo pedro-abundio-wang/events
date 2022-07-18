@@ -4,6 +4,7 @@ buildscript {
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+        classpath "com.avast.gradle:gradle-docker-compose-plugin:${dockerComposePluginVersion}"
     }
 }
 
@@ -13,7 +14,9 @@ subprojects {
     version "${buildVersion}"
 
     apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'maven-publish'
+    apply plugin: 'docker-compose'
     apply plugin: IntegrationTestsPlugin
     apply plugin: ComponentTestsPlugin
 
@@ -31,7 +34,12 @@ subprojects {
             }
         }
     }
-}
 
+    dockerCompose {
+        useComposeFiles = ["deployment/docker-compose/docker-compose.yml"]
+        waitForHealthyStateTimeout = java.time.Duration.ofMinutes(3)
+    }
+
+}
 
 
