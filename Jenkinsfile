@@ -10,14 +10,14 @@ pipeline {
     }
 
     parameters {
-        // kubernetes master parameters
-        string(name: 'KUBERNETES_MASTER', defaultValue: '10.110.38.32', description: 'Kubernetes master node ip address')
-        string(name: 'KUBERNETES_MASTER_OS_USER', defaultValue: 'root', description: 'Kubernetes master node os username')
-        string(name: 'KUBERNETES_MASTER_OS_PASS', defaultValue: 'root', description: 'Kubernetes master node os password')
         // build parameters
         string(name: 'BUILD_VERSION', defaultValue: 'v0.0.1', description: 'Build version')
         // kubernetes deployment parameters
         string(name: 'KUBERNETES_NAMESPACE', defaultValue: 'events-cdc', description: 'Deploy application to specific namespace')
+        // kubernetes master parameters
+        string(name: 'KUBERNETES_MASTER', defaultValue: '10.110.38.32', description: 'Kubernetes master node ip address')
+        string(name: 'KUBERNETES_MASTER_OS_USER', defaultValue: 'root', description: 'Kubernetes master node os username')
+        string(name: 'KUBERNETES_MASTER_OS_PASS', defaultValue: 'root', description: 'Kubernetes master node os password')
         // harbor docker
         // the following 2 parameters can not name 'DOCKER_HOST' and 'DOCKER_PORT'
         // because unknown fucking bugs, guess those key word conflict with jenkins
