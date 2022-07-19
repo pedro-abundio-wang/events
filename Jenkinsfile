@@ -127,7 +127,7 @@ pipeline {
                     ./gradlew :events-messaging:events-messaging-activemq:integrationTest
                     ./gradlew :events-messaging:events-messaging-activemq:composeDown
 
-                    ./gradlew :events-messaging:events-messaging-kafka:composeUp
+                    KAFKA_HOST_IP=${params.JENKINS_HOST} ./gradlew :events-messaging:events-messaging-kafka:composeUp
                     ./gradlew :events-messaging:events-messaging-kafka:integrationTest -DOS_ENV_KAFKA_HOST=${params.JENKINS_HOST}
                     ./gradlew :events-messaging:events-messaging-kafka:composeDown
                 """
