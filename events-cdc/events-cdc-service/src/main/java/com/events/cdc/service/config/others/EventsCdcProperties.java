@@ -16,7 +16,7 @@ public class EventsCdcProperties {
   @Value("${events.cdc.reader.name:#{null}}")
   private String readerName;
 
-  @Value("${events.cdc.source.table.name:#{null}}")
+  @Value("${events.cdc.pipeline.source.table.name:#{null}}")
   private String sourceTableName;
 
   @Value("${events.cdc.polling.interval.in.milliseconds:#{500}}")

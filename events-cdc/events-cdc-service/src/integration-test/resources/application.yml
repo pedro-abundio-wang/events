@@ -1,6 +1,6 @@
 logging:
   level:
-    com.events: DEBUG
+    com.events: INFO
 
 spring:
   datasource:
@@ -13,14 +13,17 @@ events:
   cdc:
     kafka:
       bootstrap:
-        servers: ${OS_ENV_KAFKA_HOST:localhost}:9092
+        servers: ${OS_ENV_KAFKA_HOST:localhost}:19092
     zookeeper:
       connection:
         string: ${OS_ENV_ZK_HOST:localhost}:2181
     reader:
       name: PostgresWalReader
       outboxId: 1
-
+    pipeline:
+      source:
+        table:
+          name: events
 
 
 

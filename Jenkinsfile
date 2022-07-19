@@ -29,6 +29,8 @@ pipeline {
         string(name: 'HARBOR_PROJECT', defaultValue: 'library', description: 'Harbor project')
         string(name: 'HARBOR_USER', defaultValue: 'admin', description: 'Harbor user')
         string(name: 'HARBOR_PASS', defaultValue: 'Harbor12345', description: 'Harbor password')
+        // jenkins information for integration test
+        string(name: 'JENKINS_HOST', defaultValue: '10.110.38.38', description: 'Jenkins host')
     }
 
     stages {
@@ -105,16 +107,16 @@ pipeline {
                 echo 'Integration Test: events-common'
                 sh """
                     USE_DB_ID=false USE_JSON_PAYLOAD_AND_HEADERS=false ./gradlew :events-db:events-postgres:composeUp
-                    ./gradlew :events-common:events-common-jdbc:integrationTest -DOS_ENV_PG_HOST=localhost
+                    ./gradlew :events-common:events-common-jdbc:integrationTest
                     ./gradlew :events-db:events-postgres:composeDown
                 """
 
                 echo 'Integration Test: events-core'
                 sh """
                     USE_DB_ID=false USE_JSON_PAYLOAD_AND_HEADERS=false ./gradlew :events-db:events-postgres:composeUp
-                    ./gradlew :events-core:events-core-messaging:integrationTest -DOS_ENV_PG_HOST=localhost
-                    ./gradlew :events-core:events-core-commands:integrationTest -DOS_ENV_PG_HOST=localhost
-                    ./gradlew :events-core:events-core-domain:integrationTest -DOS_ENV_PG_HOST=localhost
+                    ./gradlew :events-core:events-core-messaging:integrationTest
+                    ./gradlew :events-core:events-core-commands:integrationTest
+                    ./gradlew :events-core:events-core-domain:integrationTest
                     ./gradlew :events-db:events-postgres:composeDown
                 """
 
@@ -122,18 +124,18 @@ pipeline {
                 echo 'Integration Test: events-messaging'
                 sh """
                     ./gradlew :events-messaging:events-messaging-activemq:composeUp
-                    ./gradlew :events-messaging:events-messaging-activemq:integrationTest -DOS_ENV_ACTIVEMQ_HOST=localhost
+                    ./gradlew :events-messaging:events-messaging-activemq:integrationTest
                     ./gradlew :events-messaging:events-messaging-activemq:composeDown
 
                     ./gradlew :events-messaging:events-messaging-kafka:composeUp
-                    ./gradlew :events-messaging:events-messaging-kafka:integrationTest -DOS_ENV_KAFKA_HOST=localhost
+                    ./gradlew :events-messaging:events-messaging-kafka:integrationTest -DOS_ENV_KAFKA_HOST=${params.JENKINS_HOST}
                     ./gradlew :events-messaging:events-messaging-kafka:composeDown
                 """
 
                 echo 'Integration Test: events-cdc'
                 sh """
-                    SPRING_PROFILES_ACTIVE=kafka,zookeeper buildVersion=${params.BUILD_VERSION} USE_DB_ID=false USE_JSON_PAYLOAD_AND_HEADERS=false ./gradlew :events-cdc:events-cdc-service:composeUp
-                    ./gradlew :events-cdc:events-cdc-service:integrationTest --tests "com.events.cdc.service.performance.PerformanceTest.testAllEventsSameTopicSameId"
+                    KAFKA_HOST_IP=${params.JENKINS_HOST} USE_DB_ID=false USE_JSON_PAYLOAD_AND_HEADERS=false ./gradlew :events-cdc:events-cdc-service:composeUp
+                    ./gradlew :events-cdc:events-cdc-service:integrationTest --tests "com.events.cdc.service.performance.PerformanceTest.testAllEventsSameTopicSameId" -DOS_ENV_KAFKA_HOST=${params.JENKINS_HOST}
                     ./gradlew :events-cdc:events-cdc-service:composeDown
                 """
             }
