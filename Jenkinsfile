@@ -121,10 +121,13 @@ pipeline {
                 // should RabbitMQ, Redis
                 echo 'Integration Test: events-messaging'
                 sh """
-                    ./gradlew :events-messaging:composeUp
+                    ./gradlew :events-messaging:events-messaging-activemq:composeUp
                     ./gradlew :events-messaging:events-messaging-activemq:integrationTest -DOS_ENV_ACTIVEMQ_HOST=localhost
+                    ./gradlew :events-messaging:events-messaging-activemq:composeDown
+
+                    ./gradlew :events-messaging:events-messaging-kafka:composeUp
                     ./gradlew :events-messaging:events-messaging-kafka:integrationTest -DOS_ENV_KAFKA_HOST=localhost
-                    ./gradlew :events-messaging:composeDown
+                    ./gradlew :events-messaging:events-messaging-kafka:composeDown
                 """
 
                 echo 'Integration Test: events-cdc'

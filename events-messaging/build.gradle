@@ -35,11 +35,6 @@ subprojects {
         }
     }
 
-    dockerCompose {
-        useComposeFiles = ["deployment/docker-compose/docker-compose.yml"]
-        waitForHealthyStateTimeout = java.time.Duration.ofMinutes(3)
-    }
-
 }
 
 
