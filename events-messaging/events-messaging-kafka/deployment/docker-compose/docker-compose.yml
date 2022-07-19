@@ -14,11 +14,14 @@ services:
     container_name: kafka
     ports:
       - "9092:9092"
+      - "19092:19092"
     depends_on:
       - zookeeper
     environment:
       # https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/?utm_source=github&utm_medium=rmoff&utm_campaign=ty.community.con.rmoff-listeners&utm_term=rmoff-devx
       # https://www.confluent.io/blog/kafka-listeners-explained/
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE_DOCKER_NETWORK://kafka:9092,OUTSIDE_DOCKER_NETWORK://localhost:19092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE_DOCKER_NETWORK
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE_DOCKER_NETWORK:PLAINTEXT,OUTSIDE_DOCKER_NETWORK:PLAINTEXT
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
