@@ -135,7 +135,8 @@ pipeline {
                 echo 'Integration Test: events-cdc'
                 sh """
                     KAFKA_HOST_IP=${params.JENKINS_HOST} USE_DB_ID=false USE_JSON_PAYLOAD_AND_HEADERS=false ./gradlew :events-cdc:events-cdc-service:composeUp
-                    ./gradlew :events-cdc:events-cdc-service:integrationTest --tests "com.events.cdc.service.performance.PerformanceTest.testAllEventsSameTopicSameId" -DOS_ENV_KAFKA_HOST=${params.JENKINS_HOST}
+                    ./gradlew :events-cdc:events-cdc-service:integrationTest --tests com.events.cdc.service.performance.PerformanceTest.test10TopicsSameId -DOS_ENV_KAFKA_HOST=${params.JENKINS_HOST}
+                    ./gradlew :events-cdc:events-cdc-service:integrationTest --tests com.events.cdc.service.performance.PerformanceTest.test10TopicsDifferentIds -DOS_ENV_KAFKA_HOST=${params.JENKINS_HOST}
                     ./gradlew :events-cdc:events-cdc-service:composeDown
                 """
             }
