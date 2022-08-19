@@ -30,6 +30,7 @@ dependencies {
 bootBuildImage {
     imageName = "${harborHost}:${harborPort}/${harborProject}/${project.name}:${project.version}"
     publish = true
+    pullPolicy = "IF_NOT_PRESENT"
     docker {
         host = "tcp://${dockerHost}:${dockerPort}"
         publishRegistry {
@@ -49,4 +50,5 @@ dockerCompose {
     environment.put 'USE_JSON_PAYLOAD_AND_HEADERS', 'false'
     environment.put 'SPRING_PROFILES_ACTIVE', 'kafka, zookeeper'
     useComposeFiles = ["deployment/docker-compose/docker-compose.yml"]
+    waitForHealthyStateTimeout = java.time.Duration.ofMinutes(3)
 }

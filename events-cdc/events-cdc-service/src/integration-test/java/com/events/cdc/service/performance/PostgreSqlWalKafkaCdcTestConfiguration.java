@@ -118,14 +118,6 @@ public class PostgreSqlWalKafkaCdcTestConfiguration {
   }
 
   @Bean
-  public KafkaMessageProducer kafkaMessageProducer(
-      KafkaProperties kafkaProperties,
-      KafkaMessageProducerProperties kafkaMessageProducerProperties) {
-    return new KafkaMessageProducer(
-        kafkaProperties.getBootstrapServers(), kafkaMessageProducerProperties);
-  }
-
-  @Bean
   public CdcProducerFactory cdcProducerFactory(
       KafkaProperties kafkaProperties,
       KafkaMessageProducerProperties kafkaMessageProducerProperties,

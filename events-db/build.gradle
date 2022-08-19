@@ -11,7 +11,7 @@ buildscript {
 subprojects {
 
     group 'com.events.db'
-    version 'v0.0.1'
+    version "${buildVersion}"
 
     apply plugin: 'com.bmuschko.docker-remote-api'
     apply plugin: 'docker-compose'

@@ -6,4 +6,4 @@ events:
   cdc:
     kafka:
       bootstrap:
-        servers: ${OS_ENV_KAFKA_HOST:localhost}:9092
+        servers: ${OS_ENV_KAFKA_HOST:localhost}:19092
