@@ -1,0 +1,265 @@
+package io.eventuate.tram.sagas.orchestration;
+
+import com.events.core.commands.common.CommandMessageHeaders;
+import com.events.core.commands.publisher.CommandPublisher;
+import com.events.core.commands.subscriber.CommandHandlerReplyBuilder;
+import com.events.core.messaging.message.Message;
+import com.events.core.messaging.subscriber.MessageSubscriber;
+import io.eventuate.tram.sagas.common.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+
+import static java.util.Collections.singleton;
+
+public class SagaManagerImpl<Data> implements SagaManager<Data> {
+
+  private Logger logger = LoggerFactory.getLogger(getClass());
+
+  private Saga<Data> saga;
+  private SagaInstanceRepository sagaInstanceRepository;
+  private CommandPublisher commandPublisher;
+  private MessageSubscriber messageSubscriber;
+  private SagaLockManager sagaLockManager;
+  private SagaCommandProducer sagaCommandProducer;
+
+  public SagaManagerImpl(
+      Saga<Data> saga,
+      SagaInstanceRepository sagaInstanceRepository,
+      CommandPublisher commandPublisher,
+      MessageSubscriber messageSubscriber,
+      SagaLockManager sagaLockManager,
+      SagaCommandProducer sagaCommandProducer) {
+    this.saga = saga;
+    this.sagaInstanceRepository = sagaInstanceRepository;
+    this.commandPublisher = commandPublisher;
+    this.messageSubscriber = messageSubscriber;
+    this.sagaLockManager = sagaLockManager;
+    this.sagaCommandProducer = sagaCommandProducer;
+  }
+
+  public void setSagaCommandProducer(SagaCommandProducer sagaCommandProducer) {
+    this.sagaCommandProducer = sagaCommandProducer;
+  }
+
+  public void setSagaInstanceRepository(SagaInstanceRepository sagaInstanceRepository) {
+    this.sagaInstanceRepository = sagaInstanceRepository;
+  }
+
+  public void setCommandPublisher(CommandPublisher commandPublisher) {
+    this.commandPublisher = commandPublisher;
+  }
+
+  public void setMessageSubscriber(MessageSubscriber messageSubscriber) {
+    this.messageSubscriber = messageSubscriber;
+  }
+
+  public void setSagaLockManager(SagaLockManager sagaLockManager) {
+    this.sagaLockManager = sagaLockManager;
+  }
+
+  @Override
+  public SagaInstance create(Data sagaData) {
+    return create(sagaData, Optional.empty());
+  }
+
+  @Override
+  public SagaInstance create(Data data, Class targetClass, Object targetId) {
+    return create(data, Optional.of(new LockTarget(targetClass, targetId).getTarget()));
+  }
+
+  @Override
+  public SagaInstance create(Data sagaData, Optional<String> resource) {
+
+    SagaInstance sagaInstance =
+        new SagaInstance(
+            getSagaType(),
+            null,
+            "????",
+            null,
+            SagaDataSerde.serializeSagaData(sagaData),
+            new HashSet<>());
+
+    sagaInstanceRepository.save(sagaInstance);
+
+    String sagaId = sagaInstance.getId();
+
+    saga.onStarting(sagaId, sagaData);
+
+    resource.ifPresent(
+        r -> {
+          if (!sagaLockManager.claimLock(getSagaType(), sagaId, r)) {
+            throw new RuntimeException("Cannot claim lock for resource");
+          }
+        });
+
+    SagaActions<Data> actions = getStateDefinition().start(sagaData);
+
+    actions
+        .getLocalException()
+        .ifPresent(
+            e -> {
+              throw e;
+            });
+
+    processActions(sagaId, sagaInstance, sagaData, actions);
+
+    return sagaInstance;
+  }
+
+  private void performEndStateActions(
+      String sagaId, SagaInstance sagaInstance, boolean compensating, Data sagaData) {
+    for (DestinationAndResource dr : sagaInstance.getDestinationsAndResources()) {
+      Map<String, String> headers = new HashMap<>();
+      headers.put(SagaCommandHeaders.SAGA_ID, sagaId);
+      headers.put(
+          SagaCommandHeaders.SAGA_TYPE,
+          getSagaType()); // FTGO SagaCommandHandler failed without this but the
+      // OrdersAndCustomersIntegrationTest was fine?!?
+      commandPublisher.publish(
+          dr.getDestination(),
+          dr.getResource(),
+          new SagaUnlockCommand(),
+          makeSagaReplyChannel(),
+          headers);
+    }
+
+    if (compensating) saga.onSagaRolledBack(sagaId, sagaData);
+    else saga.onSagaCompletedSuccessfully(sagaId, sagaData);
+  }
+
+  private SagaDefinition<Data> getStateDefinition() {
+    SagaDefinition<Data> sm = saga.getSagaDefinition();
+
+    if (sm == null) {
+      throw new RuntimeException("state machine cannot be null");
+    }
+
+    return sm;
+  }
+
+  private String getSagaType() {
+    return saga.getSagaType();
+  }
+
+  @PostConstruct
+  public void subscribeToReplyChannel() {
+    messageSubscriber.subscribe(
+        saga.getSagaType() + "-consumer", singleton(makeSagaReplyChannel()), this::handleMessage);
+  }
+
+  private String makeSagaReplyChannel() {
+    return getSagaType() + "-reply";
+  }
+
+  public void handleMessage(Message message) {
+    logger.debug("handle message invoked {}", message);
+    if (message.hasHeader(SagaReplyHeaders.REPLY_SAGA_ID)) {
+      handleReply(message);
+    } else {
+      logger.warn("Handle message doesn't know what to do with: {} ", message);
+    }
+  }
+
+  private void handleReply(Message message) {
+
+    if (!isReplyForThisSagaType(message)) return;
+
+    logger.debug("Handle reply: {}", message);
+
+    String sagaId = message.getRequiredHeader(SagaReplyHeaders.REPLY_SAGA_ID);
+    String sagaType = message.getRequiredHeader(SagaReplyHeaders.REPLY_SAGA_TYPE);
+
+    SagaInstance sagaInstance = sagaInstanceRepository.find(sagaType, sagaId);
+    Data sagaData = SagaDataSerde.deserializeSagaData(sagaInstance.getSerializedSagaData());
+
+    message
+        .getHeader(SagaReplyHeaders.REPLY_LOCKED)
+        .ifPresent(
+            lockedTarget -> {
+              String destination =
+                  message.getRequiredHeader(
+                      CommandMessageHeaders.inReply(CommandMessageHeaders.DESTINATION));
+              sagaInstance.addDestinationsAndResources(
+                  singleton(new DestinationAndResource(destination, lockedTarget)));
+            });
+
+    String currentState = sagaInstance.getStateName();
+
+    logger.info("Current state={}", currentState);
+
+    SagaActions<Data> actions = getStateDefinition().handleReply(currentState, sagaData, message);
+
+    logger.info("Handled reply. Sending commands {}", actions.getCommands());
+
+    processActions(sagaId, sagaInstance, sagaData, actions);
+  }
+
+  private void processActions(
+      String sagaId, SagaInstance sagaInstance, Data sagaData, SagaActions<Data> actions) {
+
+    while (true) {
+
+      if (actions.getLocalException().isPresent()) {
+
+        actions =
+            getStateDefinition()
+                .handleReply(
+                    actions.getUpdatedState().get(),
+                    actions.getUpdatedSagaData().get(),
+                    CommandHandlerReplyBuilder.withFailure());
+
+      } else {
+        // only do this if successful
+
+        String lastRequestId =
+            sagaCommandProducer.sendCommands(
+                this.getSagaType(), sagaId, actions.getCommands(), this.makeSagaReplyChannel());
+        sagaInstance.setLastRequestId(lastRequestId);
+
+        updateState(sagaInstance, actions);
+
+        sagaInstance.setSerializedSagaData(
+            SagaDataSerde.serializeSagaData(actions.getUpdatedSagaData().orElse(sagaData)));
+
+        if (actions.isEndState()) {
+          performEndStateActions(sagaId, sagaInstance, actions.isCompensating(), sagaData);
+        }
+
+        sagaInstanceRepository.update(sagaInstance);
+
+        if (!actions.isLocal()) break;
+
+        actions =
+            getStateDefinition()
+                .handleReply(
+                    actions.getUpdatedState().get(),
+                    actions.getUpdatedSagaData().get(),
+                    CommandHandlerReplyBuilder.withSuccess());
+      }
+    }
+  }
+
+  private void updateState(SagaInstance sagaInstance, SagaActions<Data> actions) {
+    actions
+        .getUpdatedState()
+        .ifPresent(
+            stateName -> {
+              sagaInstance.setStateName(stateName);
+              sagaInstance.setEndState(actions.isEndState());
+              sagaInstance.setCompensating(actions.isCompensating());
+            });
+  }
+
+  private Boolean isReplyForThisSagaType(Message message) {
+    return message
+        .getHeader(SagaReplyHeaders.REPLY_SAGA_TYPE)
+        .map(x -> x.equals(getSagaType()))
+        .orElse(false);
+  }
+}
