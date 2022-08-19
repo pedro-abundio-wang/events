@@ -1,0 +1,40 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+        classpath "com.avast.gradle:gradle-docker-compose-plugin:${dockerComposePluginVersion}"
+    }
+}
+
+subprojects {
+
+    group 'com.events.messaging'
+    version "${buildVersion}"
+
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+    apply plugin: 'docker-compose'
+    apply plugin: IntegrationTestsPlugin
+    apply plugin: ComponentTestsPlugin
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    repositories {
+        mavenCentral()
+    }
+
+    publishing {
+        publications {
+            eventsMessaging(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+
+}
+
+

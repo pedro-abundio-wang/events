@@ -1,0 +1,262 @@
+@startuml
+class com.events.core.messaging.subscriber.MessageHandlerDecoratorChainBuilder {
+- List<MessageHandlerDecorator> handlers
++ {static} MessageHandlerDecoratorChainBuilder startingWith(MessageHandlerDecorator)
+- void add(MessageHandlerDecorator)
++ MessageHandlerDecoratorChainBuilder andThen(MessageHandlerDecorator)
++ MessageHandlerDecoratorChain andFinally(Consumer<SubscriberIdAndMessage>)
+- MessageHandlerDecoratorChain buildChain(List<MessageHandlerDecorator>,Consumer<SubscriberIdAndMessage>)
+}
+class com.events.core.messaging.publisher.MessagePublisherImpl {
+- Logger logger
+- MessageInterceptor[] messageInterceptors
+- MessageChannelMapping messageChannelMapping
+- MessageProducer messageProducer
++ void publish(String,Message)
+- void publish(Message)
+- void preSend(Message)
+- void postSend(Message,RuntimeException)
+- void prepareMessageHeaders(String,Message)
+}
+class com.events.core.messaging.spring.config.NoopDuplicateMessageDetectorConfiguration {
++ DuplicateMessageDetector duplicateMessageDetector()
+}
+class com.events.core.messaging.subscriber.PrePostHandlerMessageHandlerDecorator {
+- Logger logger
+- MessageInterceptor[] messageInterceptors
++ void accept(SubscriberIdAndMessage,MessageHandlerDecoratorChain)
+- void preHandle(String,Message)
+- void postHandle(String,Message,Throwable)
++ int getOrder()
+}
+class com.events.core.messaging.producer.in.memory.MessageProducerInMemoryImpl {
+- Logger logger
++ void send(Message)
+}
+interface com.events.core.messaging.message.Message {
+~ String ID
+~ String DESTINATION
+~ String DATE
+~ String PARTITION_ID
+~ String getId()
+~ Map<String,String> getHeaders()
+~ Optional<String> getHeader(String)
+~ String getRequiredHeader(String)
+~ boolean hasHeader(String)
+~ void setHeaders(Map<String,String>)
+~ void setHeader(String,String)
+~ void removeHeader(String)
+~ String getPayload()
+~ void setPayload(String)
+}
+class com.events.core.messaging.util.HttpDateHeaderFormatUtil {
++ {static} String nowAsHttpDateString()
++ {static} String timeAsHttpDateString(ZonedDateTime)
+}
+class com.events.core.messaging.subscriber.PrePostReceiveMessageHandlerDecorator {
+- Logger logger
+- MessageInterceptor[] messageInterceptors
++ void accept(SubscriberIdAndMessage,MessageHandlerDecoratorChain)
+- void preReceive(Message)
+- void postReceive(Message)
++ int getOrder()
+}
+interface com.events.core.messaging.subscriber.MessageSubscription {
+~ void unsubscribe()
+}
+interface com.events.core.messaging.subscriber.DuplicateMessageDetector {
+~ boolean isDuplicate(String,String)
+~ void doWithMessage(SubscriberIdAndMessage,Runnable)
+}
+class com.events.core.messaging.message.MessageBuilder {
+# String payload
+# Map<String,String> headers
++ {static} MessageBuilder createInstance()
++ MessageBuilder withPayload(String)
++ MessageBuilder withHeader(String,String)
++ MessageBuilder withExtraHeaders(String,Map<String,String>)
++ MessageBuilder withMessage(Message)
++ Message build()
+}
+class com.events.core.messaging.spring.config.MessageSubscriberConfiguration {
++ MessageSubscriber messageSubscriber(MessageConsumer,MessageChannelMapping,MessageHandlerDecoratorFactory)
+}
+class com.events.core.messaging.subscriber.SubscriberIdAndMessage {
+- String subscriberId
+- Message message
++ String getSubscriberId()
++ Message getMessage()
+}
+interface com.events.core.messaging.publisher.MessagePublisher {
+~ void publish(String,Message)
+}
+class com.events.core.messaging.subscriber.NoopDuplicateMessageDetector {
++ boolean isDuplicate(String,String)
++ void doWithMessage(SubscriberIdAndMessage,Runnable)
+}
+class com.events.core.messaging.message.MessageImpl {
+- String payload
+- Map<String,String> headers
++ Optional<String> getHeader(String)
++ String getRequiredHeader(String)
++ boolean hasHeader(String)
++ Map<String,String> getHeaders()
++ void setHeaders(Map<String,String>)
++ void setHeader(String,String)
++ void removeHeader(String)
++ String getId()
++ String getPayload()
++ void setPayload(String)
++ String toString()
+}
+class com.events.core.messaging.publisher.MessagePublisherTestConfiguration {
+}
+interface com.events.core.messaging.subscriber.MessageHandler {
+}
+interface com.events.core.messaging.subscriber.MessageHandlerDecoratorChain {
+~ void invokeNext(SubscriberIdAndMessage)
+}
+class com.events.core.messaging.spring.config.MessageHandlerDecoratorConfiguration {
+- MessageInterceptor[] messageInterceptors
++ MessageHandlerDecoratorFactory subscribedMessageHandlerChainFactory(List<MessageHandlerDecorator>)
++ PrePostReceiveMessageHandlerDecorator prePostReceiveMessageHandlerDecoratorDecorator()
++ DuplicateDetectingMessageHandlerDecorator duplicateDetectingMessageHandlerDecorator(DuplicateMessageDetector)
++ PrePostHandlerMessageHandlerDecorator prePostHandlerMessageHandlerDecorator()
+}
+interface com.events.core.messaging.producer.MessageProducer {
+~ void send(Message)
+~ void setMessageIdIfNecessary(Message)
+~ void withContext(Runnable)
+}
+class com.events.core.messaging.spring.config.MessageProducerConfiguration {
++ MessageProducer messageProducer(EventsJdbcOperations,IdGenerator,EventsSchema)
+}
+class com.events.core.messaging.spring.config.MessagePublisherConfiguration {
+- MessageInterceptor[] messageInterceptors
++ MessageChannelMapping messageChannelMapping()
++ MessagePublisher messagePublisher(MessageChannelMapping,MessageProducer)
+}
+abstract class com.events.core.messaging.AbstractMessageTest {
+- long uniqueId
+- String subscriberId
+- String destination
+- String payload
+- MessagePublisher messagePublisher
+- MessageSubscriber messageSubscriber
+- BlockingQueue<Message> queue
++ void shouldReceiveMessage()
+- void handleMessage(Message)
+}
+class com.events.core.messaging.channel.MessageChannelMappingBuilder {
+- Map<String,String> mappings
++ {static} MessageChannelMappingBuilder createInstance()
++ MessageChannelMappingBuilder withMapping(String,String)
++ MessageChannelMapping build()
+}
+class com.events.core.messaging.publisher.MessagePublisherTest {
+- long uniqueId
+- String subscriberId
+- String destination
+- String payload
+- MessagePublisher messagePublisher
++ void shouldPublishMessage()
+}
+interface com.events.core.messaging.channel.MessageChannelMapping {
+~ String transform(String)
+}
+class com.events.core.messaging.consumer.in.memory.EventsMessageConsumerInMemoryImpl {
++ MessageSubscription subscribe(String,Set<String>,MessageHandler)
++ String getId()
++ void close()
+}
+class com.events.core.messaging.jdbc.kafka.JdbcKafkaMessageTestConfiguration {
+}
+interface com.events.core.messaging.subscriber.MessageHandlerDecorator {
+~ int getOrder()
+}
+class com.events.core.messaging.jdbc.kafka.JdbcKafkaMessageTest {
+}
+class com.events.core.messaging.spring.config.jdbc.kafka.EventsJdbcKafkaConfiguration {
+}
+interface com.events.core.messaging.subscriber.MessageSubscriber {
+~ MessageSubscription subscribe(String,Set<String>,MessageHandler)
+~ String getId()
+~ void close()
+}
+class com.events.core.messaging.channel.DefaultMessageChannelMapping {
+- Map<String,String> mappings
++ String transform(String)
+}
+class com.events.core.messaging.subscriber.DuplicateDetectingMessageHandlerDecorator {
+- DuplicateMessageDetector duplicateMessageDetector
++ void accept(SubscriberIdAndMessage,MessageHandlerDecoratorChain)
++ int getOrder()
+}
+class com.events.core.messaging.consumer.in.memory.MessageConsumerInMemoryImpl {
+}
+class com.events.core.messaging.consumer.kafka.EventsMessageConsumerKafkaImpl {
+- Logger logger
+- MessageConsumerKafkaImpl messageConsumerKafka
++ MessageSubscription subscribe(String,Set<String>,MessageHandler)
++ String getId()
++ void close()
+}
+class com.events.core.messaging.producer.jdbc.MessageProducerJdbcImpl {
+- EventsJdbcOperations eventsJdbcOperations
+- IdGenerator idGenerator
+- EventsSchema eventsSchema
++ void send(Message)
+}
+class com.events.core.messaging.spring.config.MessageConsumerConfiguration {
++ MessageConsumer messageConsumer(MessageConsumerKafkaImpl)
+}
+interface com.events.core.messaging.consumer.MessageConsumer {
+~ MessageSubscription subscribe(String,Set<String>,MessageHandler)
+~ String getId()
+~ void close()
+}
+class com.events.core.messaging.subscriber.MessageHandlerDecoratorFactory {
+- Logger logger
+- List<MessageHandlerDecorator> decorators
++ Consumer<SubscriberIdAndMessage> decorate(MessageHandler)
+}
+interface com.events.core.messaging.interceptor.MessageInterceptor {
+~ void preSend(Message)
+~ void postSend(Message,Exception)
+~ void preReceive(Message)
+~ void postReceive(Message)
+~ void preHandle(String,Message)
+~ void postHandle(String,Message,Throwable)
+}
+class com.events.core.messaging.subscriber.BuiltInMessageHandlerDecoratorOrder {
++ {static} int PRE_POST_RECEIVE_MESSAGE_HANDLER_DECORATOR
++ {static} int DUPLICATE_DETECTING_MESSAGE_HANDLER_DECORATOR
++ {static} int PRE_POST_HANDLER_MESSAGE_HANDLER_DECORATOR
+}
+class com.events.core.messaging.subscriber.MessageSubscriberImpl {
+- Logger logger
+- MessageChannelMapping messageChannelMapping
+- MessageConsumer target
+- MessageHandlerDecoratorFactory messageHandlerDecoratorFactory
++ MessageSubscription subscribe(String,Set<String>,MessageHandler)
++ String getId()
++ void close()
+}
+
+
+com.events.core.messaging.publisher.MessagePublisher <|.. com.events.core.messaging.publisher.MessagePublisherImpl
+com.events.core.messaging.subscriber.MessageHandlerDecorator <|.. com.events.core.messaging.subscriber.PrePostHandlerMessageHandlerDecorator
+com.events.core.messaging.producer.MessageProducer <|.. com.events.core.messaging.producer.in.memory.MessageProducerInMemoryImpl
+com.events.core.messaging.subscriber.MessageHandlerDecorator <|.. com.events.core.messaging.subscriber.PrePostReceiveMessageHandlerDecorator
+com.events.core.messaging.subscriber.DuplicateMessageDetector <|.. com.events.core.messaging.subscriber.NoopDuplicateMessageDetector
+com.events.core.messaging.message.Message <|.. com.events.core.messaging.message.MessageImpl
+java.util.function.Consumer <|-- com.events.core.messaging.subscriber.MessageHandler
+com.events.core.messaging.consumer.MessageConsumer <|.. com.events.core.messaging.consumer.in.memory.EventsMessageConsumerInMemoryImpl
+java.util.function.BiConsumer <|-- com.events.core.messaging.subscriber.MessageHandlerDecorator
+com.events.core.messaging.AbstractMessageTest <|-- com.events.core.messaging.jdbc.kafka.JdbcKafkaMessageTest
+com.events.core.messaging.channel.MessageChannelMapping <|.. com.events.core.messaging.channel.DefaultMessageChannelMapping
+com.events.core.messaging.subscriber.MessageHandlerDecorator <|.. com.events.core.messaging.subscriber.DuplicateDetectingMessageHandlerDecorator
+com.events.core.messaging.consumer.MessageConsumer <|.. com.events.core.messaging.consumer.kafka.EventsMessageConsumerKafkaImpl
+com.events.core.messaging.producer.MessageProducer <|.. com.events.core.messaging.producer.jdbc.MessageProducerJdbcImpl
+com.events.core.messaging.subscriber.MessageSubscriber <|.. com.events.core.messaging.subscriber.MessageSubscriberImpl
+@enduml

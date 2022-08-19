@@ -1,0 +1,17 @@
+@startuml
+
+interface DuplicateMessageDetector {}
+
+DuplicateMessageDetector <|.. SqlTableBasedDuplicateMessageDetector
+DuplicateMessageDetector <|.. TransactionalNoopDuplicateMessageDetector
+DuplicateMessageDetector <|.. NoopDuplicateMessageDetector
+
+interface MessageHandlerDecorator {}
+
+MessageHandlerDecorator <|.. PrePostHandlerMessageHandlerDecorator
+MessageHandlerDecorator <|.. PrePostReceiveMessageHandlerDecorator
+MessageHandlerDecorator <|.. DuplicateDetectingMessageHandlerDecorator
+
+DuplicateDetectingMessageHandlerDecorator *-- DuplicateMessageDetector
+
+@enduml

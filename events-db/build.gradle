@@ -1,0 +1,32 @@
+buildscript {
+    repositories {
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath "com.bmuschko:gradle-docker-plugin:${dockerPluginVersion}"
+        classpath "com.avast.gradle:gradle-docker-compose-plugin:${dockerComposePluginVersion}"
+    }
+}
+
+subprojects {
+
+    group 'com.events.db'
+    version "${buildVersion}"
+
+    apply plugin: 'com.bmuschko.docker-remote-api'
+    apply plugin: 'docker-compose'
+
+    repositories {
+        mavenCentral()
+    }
+
+    docker {
+        url = "tcp://${dockerHost}:${dockerPort}"
+        registryCredentials {
+            url = "http://${harborHost}:${harborPort}"
+            username = "${harborUser}"
+            password = "${harborPass}"
+        }
+    }
+
+}

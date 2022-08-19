@@ -1,0 +1,22 @@
+plugins {
+    id 'org.springframework.boot' apply false
+    id 'io.spring.dependency-management'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+    }
+}
+
+dependencies {
+
+    implementation project(':events-common:events-common-tools')
+
+    implementation 'org.apache.commons:commons-lang3'
+    implementation 'org.springframework.boot:spring-boot-starter'
+
+    testImplementation 'junit:junit'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}

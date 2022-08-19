@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "events-cdc-service.fullname" . }}
+  labels:
+    {{- include "events-cdc-service.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "events-cdc-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "events-cdc-service.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: kafka, zookeeper
+            - name: EVENTS_CDC_KAFKA_BOOTSTRAP_SERVERS
+              value: events-kafka:9092
+            - name: EVENTS_CDC_ZOOKEEPER_CONNECTION_STRING
+              value: events-kafka-zookeeper:2181
+            - name: EVENTS_CDC_READER_POSTGRES_TYPE
+              value: postgres-wal
+            - name: EVENTS_CDC_READER_POSTGRES_DATASOURCEURL
+              value: jdbc:postgresql://events-postgres/postgres
+            - name: EVENTS_CDC_READER_POSTGRES_DATASOURCEUSERNAME
+              value: postgres
+            - name: EVENTS_CDC_READER_POSTGRES_DATASOURCEPASSWORD
+              value: postgres
+            - name: EVENTS_CDC_READER_POSTGRES_DATASOURCEDRIVERCLASSNAME
+              value: org.postgresql.Driver
+            - name: EVENTS_CDC_READER_POSTGRES_LEADERSHIPLOCKPATH
+              value: /events/cdc/leader/postgres
+            - name: EVENTS_CDC_READER_POSTGRES_OUTBOXID
+              value: "1"
+            - name: EVENTS_CDC_PIPELINE_EVENTS_TYPE
+              value: transactional-messaging
+            - name: EVENTS_CDC_PIPELINE_EVENTS_READER
+              value: postgres
+            - name: EVENTS_CDC_PIPELINE_EVENTS_EVENTSDATABASESCHEMA
+              value: events
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 30
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

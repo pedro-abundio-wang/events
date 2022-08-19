@@ -1,0 +1,75 @@
+rootProject.name = 'events'
+
+// -------------------------------------------------- //
+// events-common ------------------------------------ //
+// -------------------------------------------------- //
+
+include ':events-common:events-common-id'
+include ':events-common:events-common-jdbc'
+include ':events-common:events-common-json-mapper'
+include ':events-common:events-common-tools'
+
+project(':events-common:events-common-id').projectDir = file('events-common/events-common-id')
+project(':events-common:events-common-jdbc').projectDir = file('events-common/events-common-jdbc')
+project(':events-common:events-common-json-mapper').projectDir = file('events-common/events-common-json-mapper')
+project(':events-common:events-common-tools').projectDir = file('events-common/events-common-tools')
+
+// -------------------------------------------------- //
+// events-core -------------------------------------- //
+// -------------------------------------------------- //
+
+include ':events-core:events-core-commands'
+include ':events-core:events-core-domain'
+include ':events-core:events-core-messaging'
+
+project(':events-core:events-core-commands').projectDir = file('events-core/events-core-commands')
+project(':events-core:events-core-domain').projectDir = file('events-core/events-core-domain')
+project(':events-core:events-core-messaging').projectDir = file('events-core/events-core-messaging')
+
+// -------------------------------------------------- //
+// events-messaging --------------------------------- //
+// -------------------------------------------------- //
+
+include ':events-messaging:events-messaging-partition'
+include ':events-messaging:events-messaging-leadership'
+include ':events-messaging:events-messaging-kafka'
+include ':events-messaging:events-messaging-redis'
+include ':events-messaging:events-messaging-rabbitmq'
+include ':events-messaging:events-messaging-activemq'
+
+project(':events-messaging:events-messaging-leadership').projectDir = file('events-messaging/events-messaging-leadership')
+project(':events-messaging:events-messaging-partition').projectDir = file('events-messaging/events-messaging-partition')
+project(':events-messaging:events-messaging-kafka').projectDir = file('events-messaging/events-messaging-kafka')
+project(':events-messaging:events-messaging-redis').projectDir = file('events-messaging/events-messaging-redis')
+project(':events-messaging:events-messaging-rabbitmq').projectDir = file('events-messaging/events-messaging-rabbitmq')
+project(':events-messaging:events-messaging-activemq').projectDir = file('events-messaging/events-messaging-activemq')
+
+// -------------------------------------------------- //
+// events-cdc --------------------------------------- //
+// -------------------------------------------------- //
+
+include ':events-cdc:events-cdc-reader'
+include ':events-cdc:events-cdc-publisher'
+include ':events-cdc:events-cdc-pipeline'
+include ':events-cdc:events-cdc-service'
+
+project(':events-cdc:events-cdc-reader').projectDir = file('events-cdc/events-cdc-reader')
+project(':events-cdc:events-cdc-publisher').projectDir = file('events-cdc/events-cdc-publisher')
+project(':events-cdc:events-cdc-service').projectDir = file('events-cdc/events-cdc-service')
+project(':events-cdc:events-cdc-pipeline').projectDir = file('events-cdc/events-cdc-pipeline')
+
+// -------------------------------------------------- //
+// events-saga -------------------------------------- //
+// -------------------------------------------------- //
+
+//include ':events-sagas:events-sagas-common'
+//include ':events-sagas:events-sagas-orchestration'
+//
+//project(':events-sagas:events-sagas-common').projectDir = file('events-sagas/events-sagas-common')
+//project(':events-sagas:events-sagas-orchestration').projectDir = file('events-sagas/events-sagas-orchestration')
+
+// -------------------------------------------------- //
+// events-postgresql -------------------------------- //
+// -------------------------------------------------- //
+include ':events-db:events-postgres'
+project(':events-db:events-postgres').projectDir = file('events-db/events-postgres')

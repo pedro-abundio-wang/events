@@ -1,0 +1,71 @@
+@startuml
+
+abstract class CdcReader {
+# Logger logger
+# CdcReaderMetrics cdcReaderMetrics
+# MeterRegistry meterRegistry
+# List<TransactionLogEntryHandler<?>> transactionLogEntryHandlers
+# AtomicBoolean running
+# CountDownLatch stopCountDownLatch
+# String readerName
+# Long outboxId
+- long lastEventTime
+# Optional<String> processingError
+# Optional<Runnable> exceptionCallback
++ {abstract}CdcReaderProcessingStatusService getCdcProcessingStatusService()
++ TransactionLogEntryHandler<TLM> addCdcPipelineHandler(EventsSchema,String,TransactionLogEntryConverter<TLM>,Function<TLM,CompletableFuture<?>>)
++ void start()
++ void stop()
++ void stop(boolean)
+# void stopMetrics()
+# void onEventReceived()
+# void onActivity()
+# void handleProcessingFailException(Throwable)
++ Optional<String> getProcessingError()
++ String getReaderName()
++ Long getOutboxId()
++ long getLastEventTime()
++ void setExceptionCallback(Runnable)
+}
+
+abstract class DbLogCdcReader {
+# boolean connected
+# DbLogCdcReaderMetrics dbLogCdcReaderMetrics
+# CdcReaderMonitoringDao cdcReaderMonitoringDao
+# String dataSourceUrl
+# String dbUserName
+# String dbPassword
++ boolean isConnected()
++ void start()
+# void stopMetrics()
+# void onConnected()
+# void onDisconnected()
+}
+
+class PostgresWalClient {
+- String replicationSlotName
+- int maxAttemptsForTransactionLogConnection
+- int connectionTimeoutInMilliseconds
+- int walIntervalInMilliseconds
+- int replicationStatusIntervalInMilliseconds
+- PostgresWalTransactionLogEntryExtractor postgresWalTransactionLogEntryExtractor
+- PostgresWalCdcReaderProcessingStatusService postgresWalCdcProcessingStatusService
+- Connection connection
+- PGReplicationStream stream
+- OffsetProcessor<LogSequenceNumber> offsetProcessor
++ CdcReaderProcessingStatusService getCdcProcessingStatusService()
++ void start()
+- void connectWithRetriesOnFail()
+- void connectAndRun()
+- void handleTransactionLogEntry(TransactionLogEntry,TransactionLogEntryHandler)
++ void stop(boolean)
+- void checkMonitoringChange(PostgresWalMessage)
+- String extractStringFromBuffer(ByteBuffer)
+- void saveOffsetOfLastProcessedEvent()
+}
+
+CdcReader <|-- DbLogCdcReader
+DbLogCdcReader <|-- PostgresWalClient
+DbLogCdcReader <|-- MysqlBinlogClient
+CdcReader <|-- PollingCdcReader
+@enduml

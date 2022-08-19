@@ -1,0 +1,99 @@
+@startuml
+class com.events.cdc.connector.postgres.wal.PostgresWalTransactionLogEntryExtractor {
++ TransactionLogEntry extract(PostgresWalChange)
+}
+class com.events.cdc.connector.postgres.wal.PostgresWalClient {
+- String replicationSlotName
+- int maxAttemptsForTransactionLogConnection
+- int connectionTimeoutInMilliseconds
+- int walIntervalInMilliseconds
+- int replicationStatusIntervalInMilliseconds
+- PostgresWalTransactionLogEntryExtractor postgresWalTransactionLogEntryExtractor
+- PostgresWalCdcReaderProcessingStatusService postgresWalCdcProcessingStatusService
+- Connection connection
+- PGReplicationStream stream
+- OffsetProcessor<LogSequenceNumber> offsetProcessor
++ CdcReaderProcessingStatusService getCdcProcessingStatusService()
++ void start()
+- void connectWithRetriesOnFail()
+- void connectAndRun()
+- void handleTransactionLogEntry(TransactionLogEntry,TransactionLogEntryHandler)
++ void stop(boolean)
+- void checkMonitoringChange(PostgresWalMessage)
+- String extractStringFromBuffer(ByteBuffer)
+- void saveOffsetOfLastProcessedEvent()
+}
+class com.events.cdc.connector.postgres.wal.PostgresWalClient.TransactionLogEntryWithSchemaAndTable {
+- TransactionLogEntry transactionLogEntry
+- SchemaAndTable schemaAndTable
++ TransactionLogEntry getTransactionLogEntry()
++ SchemaAndTable getSchemaAndTable()
++ {static} TransactionLogEntryWithSchemaAndTable make(PostgresWalTransactionLogEntryExtractor,PostgresWalChange)
+}
+class com.events.cdc.connector.postgres.wal.PostgresWalChange {
+- String kind
+- String schema
+- String table
+- String[] columnnames
+- String[] columntypes
+- String[] columnvalues
++ String getKind()
++ void setKind(String)
++ String getSchema()
++ void setSchema(String)
++ String getTable()
++ void setTable(String)
++ String[] getColumnnames()
++ void setColumnnames(String[])
++ String[] getColumntypes()
++ void setColumntypes(String[])
++ String[] getColumnvalues()
++ void setColumnvalues(String[])
+}
+class com.events.cdc.connector.postgres.wal.PostgresWalMessage {
+- PostgresWalChange[] change
++ PostgresWalChange[] getChange()
++ void setChange(PostgresWalChange[])
+}
+class com.events.cdc.connector.postgres.wal.PostgresWalCdcReaderProperties {
+- Integer postgresWalIntervalInMilliseconds
+- Integer postgresReplicationStatusIntervalInMilliseconds
+- String postgresReplicationSlotName
+- String additionalServiceReplicationSlotName
+- long waitForOffsetSyncTimeoutInMilliseconds
++ Integer getPostgresWalIntervalInMilliseconds()
++ void setPostgresWalIntervalInMilliseconds(Integer)
++ Integer getPostgresReplicationStatusIntervalInMilliseconds()
++ void setPostgresReplicationStatusIntervalInMilliseconds(Integer)
++ String getPostgresReplicationSlotName()
++ void setPostgresReplicationSlotName(String)
++ String getAdditionalServiceReplicationSlotName()
++ void setAdditionalServiceReplicationSlotName(String)
++ long getWaitForOffsetSyncTimeoutInMilliseconds()
++ void setWaitForOffsetSyncTimeoutInMilliseconds(long)
+}
+class com.events.cdc.connector.postgres.wal.PostgresWalCdcReaderFactory {
++ {static} String TYPE
++ boolean supports(String)
++ Class<PostgresWalCdcReaderProperties> propertyClass()
++ PostgresWalClient create(PostgresWalCdcReaderProperties)
+}
+class com.events.cdc.connector.postgres.wal.PostgresWalCdcReaderProcessingStatusService {
+- JdbcTemplate jdbcTemplate
+- long endingOffsetOfLastProcessedEvent
+- long currentWalPosition
+- String additionalSlotName
+- WaitUtil waitUtil
++ CdcReaderProcessingStatus getCurrentStatus()
++ void saveEndingOffsetOfLastProcessedEvent(long)
+- void checkCurrentWalOffsetAndWaitForSyncWithOffsetOfLastProcessedEvent()
+- long getCurrentWalPosition()
+}
+
+
+com.events.cdc.reader.DbLogCdcReader <|-- com.events.cdc.connector.postgres.wal.PostgresWalClient
+com.events.cdc.connector.postgres.wal.PostgresWalClient +.. com.events.cdc.connector.postgres.wal.PostgresWalClient.TransactionLogEntryWithSchemaAndTable
+com.events.cdc.reader.properties.DbLogCdcReaderProperties <|-- com.events.cdc.connector.postgres.wal.PostgresWalCdcReaderProperties
+com.events.cdc.reader.AbstractCdcReaderFactory <|-- com.events.cdc.connector.postgres.wal.PostgresWalCdcReaderFactory
+com.events.cdc.reader.status.CdcReaderProcessingStatusService <|.. com.events.cdc.connector.postgres.wal.PostgresWalCdcReaderProcessingStatusService
+@enduml

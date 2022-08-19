@@ -1,0 +1,31 @@
+plugins {
+    id 'org.springframework.boot' apply false
+    id 'io.spring.dependency-management'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+    }
+}
+
+dependencies {
+
+    api project(':events-common:events-common-jdbc')
+    api project(':events-messaging:events-messaging-leadership')
+
+    implementation 'org.apache.commons:commons-lang3'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    implementation 'org.postgresql:postgresql'
+    implementation "com.github.shyiko:mysql-binlog-connector-java:${mysqlBinlogVersion}"
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'junit:junit'
+    implementation "com.google.guava:guava:${guavaVersion}"
+
+    testImplementation 'junit:junit'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}

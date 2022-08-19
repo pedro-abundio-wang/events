@@ -1,0 +1,120 @@
+@startuml
+class com.events.cdc.connector.db.transaction.log.converter.TransactionLogEntryToMessageWithDestinationConverter {
++ IdGenerator idGenerator
++ Optional<MessageWithDestination> convert(TransactionLogEntry)
+}
+interface com.events.cdc.connector.db.transaction.log.messaging.TransactionLogMessage {
+~ Optional<TransactionLogFileOffset> getTransactionLogFileOffset()
+}
+class com.events.cdc.connector.db.transaction.log.messaging.MessageWithDestination {
+- String destination
+- String payload
+- Map<String,String> headers
+- TransactionLogFileOffset transactionLogFileOffset
++ String getDestination()
++ String getPayload()
++ Optional<String> getPartitionId()
++ Optional<String> getHeader(String)
++ String getRequiredHeader(String)
++ boolean hasHeader(String)
++ String getId()
++ Map<String,String> getHeaders()
++ void setPayload(String)
++ void setHeaders(Map<String,String>)
++ void setHeader(String,String)
++ void removeHeader(String)
++ String toJson()
++ Optional<TransactionLogFileOffset> getTransactionLogFileOffset()
+}
+interface com.events.cdc.connector.db.transaction.log.offset.OffsetStore {
+~ Optional<TransactionLogFileOffset> getLastTransactionlogFileOffset()
+~ void save(TransactionLogFileOffset)
+}
+class com.events.cdc.connector.db.transaction.log.offset.OffsetProcessor {
+# Logger logger
+- AtomicBoolean processingOffsets
+# ConcurrentCountedLinkedQueue<Optional<OFFSET>> offsets
+# GenericOffsetStore<OFFSET> offsetStore
+# Consumer<Exception> offsetSavingExceptionHandler
+- Executor executor
++ void saveOffset(CompletableFuture<Optional<OFFSET>>)
+- void processOffsetsWithExceptionHandling(Optional<OFFSET>,Throwable)
+- void processOffsets()
+# void collectAndSaveOffsets()
+# Optional<OFFSET> getOffset(CompletableFuture<Optional<OFFSET>>)
+# boolean isDone(CompletableFuture<Optional<OFFSET>>)
++ AtomicInteger getUnprocessedOffsetCount()
+}
+class com.events.cdc.connector.db.transaction.log.messaging.EventWithSourcing {
+- String id
+- String entityId
+- String entityType
+- String eventData
+- String eventType
+- TransactionLogFileOffset transactionLogFileOffset
+- Optional<String> metadata
++ String getId()
++ void setId(String)
++ void setEntityId(String)
++ void setEntityType(String)
++ void setEventData(String)
++ void setEventType(String)
++ String getEntityId()
++ String getEntityType()
++ String getEventData()
++ String getEventType()
++ Optional<String> getMetadata()
++ void setMetadata(Optional<String>)
++ Optional<TransactionLogFileOffset> getTransactionLogFileOffset()
++ void setTransactionLogFileOffset(TransactionLogFileOffset)
+}
+class com.events.cdc.connector.db.transaction.log.entry.TransactionLogEntryHandler {
+# SchemaAndTable schemaAndTable
+# TransactionLogEntryConverter<TLM> transactionLogEntryConverter
+# Function<TLM,CompletableFuture<?>> cdcPublisher
++ String getQualifiedTable()
++ SchemaAndTable getSchemaAndTable()
++ boolean isFor(SchemaAndTable)
++ CompletableFuture<?> publish(TransactionLogEntry)
+}
+class com.events.cdc.connector.db.transaction.log.messaging.TransactionLogFileOffset {
+- String transactionLogFilename
+- long offset
+- int rowsToSkip
++ String getTransactionLogFilename()
++ void setTransactionLogFilename(String)
++ long getOffset()
++ void setOffset(long)
++ int getRowsToSkip()
++ void setRowsToSkip(int)
++ boolean isSameOrAfter(TransactionLogFileOffset)
++ boolean equals(Object)
++ int hashCode()
++ String toString()
+}
+interface com.events.cdc.connector.db.transaction.log.converter.TransactionLogEntryConverter {
+~ Optional<TLM> convert(TransactionLogEntry)
+}
+interface com.events.cdc.connector.db.transaction.log.offset.GenericOffsetStore {
+~ void save(OFFSET)
+}
+interface com.events.cdc.connector.db.transaction.log.converter.TransactionLogEntryConverterFactory {
+}
+interface com.events.cdc.connector.db.transaction.log.entry.TransactionLogEntry {
+~ Object getColumn(String)
+~ TransactionLogFileOffset getTransactionLogFileOffset()
+~ boolean getBooleanColumn(String)
+~ Long getLongColumn(String)
+~ String getStringColumn(String)
+}
+class com.events.cdc.connector.db.transaction.log.converter.TransactionLogEntryToEventWithSourcingConverter {
++ IdGenerator idGenerator
++ Optional<EventWithSourcing> convert(TransactionLogEntry)
+}
+
+com.events.cdc.connector.db.transaction.log.converter.TransactionLogEntryConverter <|.. com.events.cdc.connector.db.transaction.log.converter.TransactionLogEntryToMessageWithDestinationConverter
+com.events.cdc.connector.db.transaction.log.messaging.TransactionLogMessage <|.. com.events.cdc.connector.db.transaction.log.messaging.MessageWithDestination
+com.events.cdc.connector.db.transaction.log.offset.GenericOffsetStore <|-- com.events.cdc.connector.db.transaction.log.offset.OffsetStore
+com.events.cdc.connector.db.transaction.log.messaging.TransactionLogMessage <|.. com.events.cdc.connector.db.transaction.log.messaging.EventWithSourcing
+com.events.cdc.connector.db.transaction.log.converter.TransactionLogEntryConverter <|.. com.events.cdc.connector.db.transaction.log.converter.TransactionLogEntryToEventWithSourcingConverter
+@enduml

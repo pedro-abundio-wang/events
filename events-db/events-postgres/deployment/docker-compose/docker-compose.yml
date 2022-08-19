@@ -1,0 +1,11 @@
+version: '3'
+services:
+  events-postgres:
+    build: ../docker
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      USE_DB_ID: ${USE_DB_ID}
+      USE_JSON_PAYLOAD_AND_HEADERS: ${USE_JSON_PAYLOAD_AND_HEADERS}

@@ -1,0 +1,38 @@
+@startuml
+
+hide members
+
+class CdcPublisher {}
+
+interface CdcProducer {}
+interface PublishingFilter {}
+interface PublishingStrategy {}
+
+CdcPublisher *-- CdcProducer
+CdcPublisher *-- PublishingFilter
+CdcPublisher *-- PublishingStrategy
+
+class RedisCdcProducer {}
+class ActiveMQCdcProducer {}
+class KafkaCdcProducer {}
+class RabbitMQCdcProducer {}
+
+class TopicPartitionSender {}
+
+class RedisMessageProducer {}
+class ActiveMQMessageProducer {}
+class KafkaMessageProducer {}
+class RabbitMQMessageProducer {}
+
+CdcProducer <|-- RedisCdcProducer
+CdcProducer <|-- ActiveMQCdcProducer
+CdcProducer <|-- KafkaCdcProducer
+CdcProducer <|-- RabbitMQCdcProducer
+
+RedisCdcProducer *-- RedisMessageProducer
+ActiveMQCdcProducer *-- ActiveMQMessageProducer
+KafkaCdcProducer *-- TopicPartitionSender
+TopicPartitionSender *-- KafkaMessageProducer
+RabbitMQCdcProducer *-- RabbitMQMessageProducer
+
+@enduml

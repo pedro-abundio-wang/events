@@ -1,0 +1,39 @@
+@startuml
+
+hide members
+
+class CommandDispatcher {}
+class DomainEventDispatcher {}
+
+interface MessageSubscriber {}
+
+CommandDispatcher *-- MessageSubscriber
+DomainEventDispatcher *-- MessageSubscriber
+
+interface MessageConsumer {}
+
+MessageSubscriber *-- MessageConsumer
+
+class ActiveMQMessageConsumerWrapper {}
+class RedisMessageConsumerWrapper {}
+class RabbitMQMessageConsumerWrapper {}
+class KafkaMessageConsumerWrapper {}
+class InMemoryMessageConsumerWrapper {}
+
+class RedisMessageConsumer {}
+class RabbitMQMessageConsumer {}
+class KafkaMessageConsumer {}
+class ActiveMQMessageConsumer {}
+
+MessageConsumer <|-- ActiveMQMessageConsumerWrapper
+MessageConsumer <|-- RedisMessageConsumerWrapper
+MessageConsumer <|-- RabbitMQMessageConsumerWrapper
+MessageConsumer <|-- KafkaMessageConsumerWrapper
+MessageConsumer <|-- InMemoryMessageConsumerWrapper
+
+ActiveMQMessageConsumerWrapper *-- ActiveMQMessageConsumer
+RedisMessageConsumerWrapper *-- RedisMessageConsumer
+RabbitMQMessageConsumerWrapper *-- RabbitMQMessageConsumer
+KafkaMessageConsumerWrapper *-- KafkaMessageConsumer
+
+@enduml

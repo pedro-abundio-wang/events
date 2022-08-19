@@ -1,0 +1,19 @@
+@startuml
+class DomainEventHandlersBuilder {
+}
+class DomainEventEnvelopeImpl {
+}
+class DomainEventHandlers {
+}
+interface DomainEventEnvelope {
+}
+class DomainEventDispatcher {
+}
+class DomainEventHandler {
+}
+class DomainEventDispatcherFactory {
+}
+
+
+DomainEventEnvelope <|.. DomainEventEnvelopeImpl
+@enduml

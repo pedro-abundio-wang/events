@@ -1,0 +1,12 @@
+@startuml
+
+hide members
+
+interface PublishingStrategy {}
+
+PublishingStrategy <|-- MessageWithDestinationPublishingStrategy
+PublishingStrategy <|-- EventWithSourcingPublishingStrategy
+
+@enduml
+
+

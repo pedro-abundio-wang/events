@@ -1,0 +1,26 @@
+@startuml
+
+hide members
+
+class SagaCommandProducer {}
+
+interface DomainEventPublisher {}
+interface CommandPublisher {}
+interface MessagePublisher {}
+
+DomainEventPublisher *-- MessagePublisher
+CommandPublisher *-- MessagePublisher
+
+SagaCommandProducer *-- CommandPublisher
+
+interface MessageProducer {}
+
+MessagePublisher *-- MessageProducer
+
+class MessageProducerInMemory {}
+class MessageProducerJdbc {}
+
+MessageProducer <|-- MessageProducerInMemory
+MessageProducer <|-- MessageProducerJdbc
+
+@enduml

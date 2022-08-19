@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events-cdc-service
+  labels:
+    app: events-cdc-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: events-cdc-service
+  template:
+    metadata:
+      labels:
+        app: events-cdc-service
+    spec:
+      containers:
+        - name: events-cdc-service
+          image: events-cdc-service
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: kafka, zookeeper
+            - name: EVENTS_CDC_KAFKA_BOOTSTRAP_SERVERS
+              value: events-kafka:9092
+            - name: EVENTS_CDC_ZOOKEEPER_CONNECTION_STRING
+              value: events-kafka-zookeeper:2181
+            - name: EVENTS_CDC_READER_POSTGRES_TYPE
+              value: postgres-wal
+            - name: EVENTS_CDC_READER_POSTGRES_DATASOURCEURL
+              value: jdbc:postgresql://events-postgres/postgres
+            - name: EVENTS_CDC_READER_POSTGRES_DATASOURCEUSERNAME
+              value: postgres
+            - name: EVENTS_CDC_READER_POSTGRES_DATASOURCEPASSWORD
+              value: postgres
+            - name: EVENTS_CDC_READER_POSTGRES_DATASOURCEDRIVERCLASSNAME
+              value: org.postgresql.Driver
+            - name: EVENTS_CDC_READER_POSTGRES_LEADERSHIPLOCKPATH
+              value: /events/cdc/leader/postgres
+            - name: EVENTS_CDC_READER_POSTGRES_OUTBOXID
+              value: "1"
+            - name: EVENTS_CDC_PIPELINE_EVENTS_TYPE
+              value: transactional-messaging
+            - name: EVENTS_CDC_PIPELINE_EVENTS_READER
+              value: postgres
+            - name: EVENTS_CDC_PIPELINE_EVENTS_EVENTSDATABASESCHEMA
+              value: events
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 30

@@ -1,0 +1,14 @@
+@startuml
+
+hide members
+
+interface PublishingFilter {}
+
+PublishingFilter <|-- KafkaDuplicatePublishingDetector
+PublishingFilter <|-- RabbitMQDuplicatePublishingDetector
+PublishingFilter <|-- RedisDuplicatePublishingDetector
+PublishingFilter <|-- ActiveMQDuplicatePublishingDetector
+
+@enduml
+
+

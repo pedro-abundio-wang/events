@@ -1,0 +1,35 @@
+@startuml
+class CdcReaderProperties {
+- String type
+- String dataSourceUrl
+- String dataSourceUserName
+- String dataSourcePassword
+- String dataSourceDriverClassName
+- String leadershipLockPath
+- String readerName
+- Long outboxId
+- int monitoringRetryIntervalInMilliseconds
+- int monitoringRetryAttempts
+- String monitoringSchema
+}
+
+abstract class DbLogCdcReaderProperties {
+- String offsetStorageTopicName
+- Integer transactionLogConnectionTimeoutInMilliseconds
+- Integer transactionLogMaxAttemptsForConnection
+- Long replicationLagMeasuringIntervalInMilliseconds
+}
+
+class PostgresWalCdcReaderProperties {
+- Integer postgresWalIntervalInMilliseconds
+- Integer postgresReplicationStatusIntervalInMilliseconds
+- String postgresReplicationSlotName
+- String additionalServiceReplicationSlotName
+- long waitForOffsetSyncTimeoutInMilliseconds
+}
+
+CdcReaderProperties <|-- DbLogCdcReaderProperties
+DbLogCdcReaderProperties <|-- PostgresWalCdcReaderProperties
+DbLogCdcReaderProperties <|-- MysqlBinglogCdcReaderProperties
+CdcReaderProperties <|-- PollingCdcReaderProperties
+@enduml

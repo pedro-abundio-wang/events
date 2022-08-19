@@ -1,0 +1,123 @@
+@startuml
+
+hide members
+
+class PartitionManager {
+- Logger logger
+- int partitionCount
+- boolean initialized
+- Map<String,Assignment> currentAssignments
++ Map<String,Assignment> initialize(Map<String,Assignment>)
++ boolean isInitialized()
++ Map<String,Assignment> getCurrentAssignments()
++ Map<String,Assignment> rebalance(Map<String,Set<String>>,Set<String>)
+~ Map<String,Assignment> rebalance(Map<String,Assignment>)
+- Stream<AssignmentDescription> assignmentToAssignmentDescriptions(Map.Entry<String,Assignment>)
+- Map<String,List<AssignmentDescription>> groupAssignmentDescriptionsByChannel(Map.Entry<String,List<AssignmentDescription>>)
+- Assignment assignmentDescriptionsByChannelToAssignment(Map.Entry<String,Map<String,List<AssignmentDescription>>>)
+- Map<String,Assignment> filterUnchangedAssignments(Map<String,Assignment>,Map<String,Assignment>)
+- Set<AssignmentDescription> rebalance(Set<AssignmentDescription>)
+- Set<Integer> findNotActivePartitions(Set<AssignmentDescription>)
+- AssignmentDescription findAssignmentDescriptionWithMinPartitions(Set<AssignmentDescription>)
+- AssignmentDescription findAssignmentDescriptionWithMaxPartitions(Set<AssignmentDescription>)
+}
+class PartitionManager.AssignmentDescription {
+- String groupMember
+- String channel
+- Set<Integer> currentPartitions
+- Set<Integer> assignedPartitions
+- Set<Integer> resignedPartitions
++ void assignPartition(int)
++ void takePartitionFrom(AssignmentDescription)
++ Set<Integer> calculateExpectedPartitions()
++ int calculateRebalancedPartitions()
++ String getGroupMember()
++ String getChannel()
++ Set<Integer> getCurrentPartitions()
++ Set<Integer> getAssignedPartitions()
++ Set<Integer> getResignedPartitions()
++ String toString()
+}
+interface AssignmentListener {
+~ void remove()
+}
+interface GroupMember {
+~ void remove()
+}
+interface MemberGroupManager {
+~ void stop()
+}
+interface CoordinatorFactory {
+~ Coordinator makeCoordinator(String,Set<String>,String,Consumer<Assignment>,String,LeaderSelectedCallback,LeaderRemovedCallback)
+}
+interface AssignmentManager {
+~ void initializeAssignment(String,String,Assignment)
+~ Assignment readAssignment(String,String)
+~ void saveAssignment(String,String,Assignment)
+}
+interface AssignmentListenerFactory {
+~ AssignmentListener create(String,String,Consumer<Assignment>)
+}
+interface GroupMemberFactory {
+~ GroupMember create(String,String)
+}
+class Assignment {
+- Set<String> channels
+- Map<String,Set<Integer>> partitionAssignmentsByChannel
++ Set<String> getChannels()
++ void setChannels(Set<String>)
++ Map<String,Set<Integer>> getPartitionAssignmentsByChannel()
++ void setPartitionAssignmentsByChannel(Map<String,Set<Integer>>)
++ String toString()
++ boolean equals(Object)
++ int hashCode()
+}
+interface MemberGroupManagerFactory {
+~ MemberGroupManager create(String,String,Consumer<Set<String>>)
+}
+interface SubscriptionLifecycleHook {
+~ void partitionsUpdated(String,String,Set<Integer>)
+}
+class CoordinatorFactoryImpl {
+- AssignmentManager assignmentManager
+- AssignmentListenerFactory assignmentListenerFactory
+- MemberGroupManagerFactory memberGroupManagerFactory
+- LeaderSelectorFactory leaderSelectorFactory
+- GroupMemberFactory groupMemberFactory
+- int partitionCount
++ Coordinator makeCoordinator(String,Set<String>,String,Consumer<Assignment>,String,LeaderSelectedCallback,LeaderRemovedCallback)
+}
+class Coordinator {
+- Logger logger
+- String subscriptionId
+- String subscriberId
+- Set<String> channels
+- int partitionCount
+- GroupMember groupMember
+- MemberGroupManagerFactory memberGroupManagerFactory
+- AssignmentListener assignmentListener
+- LeaderSelector leaderSelector
+- AssignmentManager assignmentManager
+- LeaderSelectedCallback leaderSelected
+- LeaderRemovedCallback leaderRemoved
+- MemberGroupManager memberGroupManager
+- PartitionManager partitionManager
+- Set<String> previousGroupMembers
+- void createInitialAssignments()
+- void onLeaderSelected(LeadershipController)
+- void onLeaderRemoved()
+- void onGroupMembersUpdated(Set<String>)
+- void initializePartitionManager(Set<String>)
+- void rebalance(Set<String>)
+- Assignment readAssignment(String)
+- void saveAssignment(String,Assignment)
++ void close()
+}
+interface SubscriptionLeaderHook {
+~ void leaderUpdated(Boolean,String)
+}
+
+
+PartitionManager +.. PartitionManager.AssignmentDescription
+CoordinatorFactory <|.. CoordinatorFactoryImpl
+@enduml
