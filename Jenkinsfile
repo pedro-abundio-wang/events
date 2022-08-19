@@ -10,14 +10,14 @@ pipeline {
     }
 
     parameters {
-        // kubernetes master parameters
-        string(name: 'KUBERNETES_MASTER', defaultValue: '10.110.38.32', description: 'Kubernetes master node ip address')
-        string(name: 'KUBERNETES_MASTER_OS_USER', defaultValue: 'root', description: 'Kubernetes master node os username')
-        string(name: 'KUBERNETES_MASTER_OS_PASS', defaultValue: 'root', description: 'Kubernetes master node os password')
         // build parameters
         string(name: 'BUILD_VERSION', defaultValue: 'v0.0.1', description: 'Build version')
         // kubernetes deployment parameters
         string(name: 'KUBERNETES_NAMESPACE', defaultValue: 'events-cdc', description: 'Deploy application to specific namespace')
+        // kubernetes master parameters
+        string(name: 'KUBERNETES_MASTER', defaultValue: '10.110.38.32', description: 'Kubernetes master node ip address')
+        string(name: 'KUBERNETES_MASTER_OS_USER', defaultValue: 'root', description: 'Kubernetes master node os username')
+        string(name: 'KUBERNETES_MASTER_OS_PASS', defaultValue: 'root', description: 'Kubernetes master node os password')
         // harbor docker
         // the following 2 parameters can not name 'DOCKER_HOST' and 'DOCKER_PORT'
         // because unknown fucking bugs, guess those key word conflict with jenkins
@@ -29,6 +29,8 @@ pipeline {
         string(name: 'HARBOR_PROJECT', defaultValue: 'library', description: 'Harbor project')
         string(name: 'HARBOR_USER', defaultValue: 'admin', description: 'Harbor user')
         string(name: 'HARBOR_PASS', defaultValue: 'Harbor12345', description: 'Harbor password')
+        // jenkins information for integration test
+        string(name: 'JENKINS_HOST', defaultValue: '10.110.38.38', description: 'Jenkins host')
     }
 
     stages {
@@ -47,7 +49,8 @@ pipeline {
                         -PharborPort=${params.HARBOR_PORT} \
                         -PharborProject=${params.HARBOR_PROJECT} \
                         -PharborUser=${params.HARBOR_USER} \
-                        -PharborPass=${params.HARBOR_PASS}
+                        -PharborPass=${params.HARBOR_PASS} \
+                        --exclude-task test
                 """
                 sh """
                     ./gradlew :events-db:events-postgres:dockerPushImage \
@@ -58,7 +61,8 @@ pipeline {
                         -PharborPort=${params.HARBOR_PORT} \
                         -PharborProject=${params.HARBOR_PROJECT} \
                         -PharborUser=${params.HARBOR_USER} \
-                        -PharborPass=${params.HARBOR_PASS}
+                        -PharborPass=${params.HARBOR_PASS} \
+                        --exclude-task test
                 """
 
                 sh """
@@ -70,7 +74,8 @@ pipeline {
                         -PharborPort=${params.HARBOR_PORT} \
                         -PharborProject=${params.HARBOR_PROJECT} \
                         -PharborUser=${params.HARBOR_USER} \
-                        -PharborPass=${params.HARBOR_PASS}
+                        -PharborPass=${params.HARBOR_PASS} \
+                        --exclude-task test
                 """
                 // Using Cloud Native Buildpacks. You do not need a Dockerfile any more!!!
                 sh """
@@ -82,16 +87,70 @@ pipeline {
                         -PharborPort=${params.HARBOR_PORT} \
                         -PharborProject=${params.HARBOR_PROJECT} \
                         -PharborUser=${params.HARBOR_USER} \
-                        -PharborPass=${params.HARBOR_PASS}
+                        -PharborPass=${params.HARBOR_PASS} \
+                        --exclude-task test
                 """
             }
         }
-        stage('Test') {
+        stage('Unit Test') {
             steps {
-                echo 'Unit Test'
-                echo 'Integration Test'
-                echo 'Component Test'
-                echo 'E2E Test'
+                echo 'Unit Test: events-common'
+                sh """
+                    ./gradlew :events-common:events-common-id:test
+                    ./gradlew :events-common:events-common-tools:test
+                """
+            }
+        }
+
+        stage('Integration Test') {
+            steps {
+                echo 'Integration Test: events-common'
+                sh """
+                    USE_DB_ID=false USE_JSON_PAYLOAD_AND_HEADERS=false ./gradlew :events-db:events-postgres:composeUp
+                    ./gradlew :events-common:events-common-jdbc:integrationTest
+                    ./gradlew :events-db:events-postgres:composeDown
+                """
+
+                echo 'Integration Test: events-core'
+                sh """
+                    USE_DB_ID=false USE_JSON_PAYLOAD_AND_HEADERS=false ./gradlew :events-db:events-postgres:composeUp
+                    ./gradlew :events-core:events-core-messaging:integrationTest
+                    ./gradlew :events-core:events-core-commands:integrationTest
+                    ./gradlew :events-core:events-core-domain:integrationTest
+                    ./gradlew :events-db:events-postgres:composeDown
+                """
+
+                // should RabbitMQ, Redis
+                echo 'Integration Test: events-messaging'
+                sh """
+                    ./gradlew :events-messaging:events-messaging-activemq:composeUp
+                    ./gradlew :events-messaging:events-messaging-activemq:integrationTest
+                    ./gradlew :events-messaging:events-messaging-activemq:composeDown
+
+                    KAFKA_HOST_IP=${params.JENKINS_HOST} ./gradlew :events-messaging:events-messaging-kafka:composeUp
+                    ./gradlew :events-messaging:events-messaging-kafka:integrationTest -DOS_ENV_KAFKA_HOST=${params.JENKINS_HOST}
+                    ./gradlew :events-messaging:events-messaging-kafka:composeDown
+                """
+
+                echo 'Integration Test: events-cdc'
+                sh """
+                    KAFKA_HOST_IP=${params.JENKINS_HOST} USE_DB_ID=false USE_JSON_PAYLOAD_AND_HEADERS=false ./gradlew :events-cdc:events-cdc-service:composeUp
+                    ./gradlew :events-cdc:events-cdc-service:integrationTest --tests com.events.cdc.service.performance.PerformanceTest.test10TopicsSameId -DOS_ENV_KAFKA_HOST=${params.JENKINS_HOST}
+                    ./gradlew :events-cdc:events-cdc-service:integrationTest --tests com.events.cdc.service.performance.PerformanceTest.test10TopicsDifferentIds -DOS_ENV_KAFKA_HOST=${params.JENKINS_HOST}
+                    ./gradlew :events-cdc:events-cdc-service:composeDown
+                """
+            }
+        }
+
+        stage('Component Test') {
+            steps {
+                echo '...'
+            }
+        }
+
+        stage('E2E Test') {
+            steps {
+                echo '...'
             }
         }
         stage('Deploy') {

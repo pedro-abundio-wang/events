@@ -24,3 +24,8 @@ dependencies {
     testImplementation 'junit:junit'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
+
+dockerCompose {
+    useComposeFiles = ["deployment/docker-compose/docker-compose.yml"]
+    waitForHealthyStateTimeout = java.time.Duration.ofMinutes(3)
+}
